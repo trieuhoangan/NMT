@@ -19,7 +19,24 @@ vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binar
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 teacher_forcing_ratio = 0.5
+import time
+import math
+
+
+def asMinutes(s):
+    m = math.floor(s / 60)
+    s -= m * 60
+    return '%dm %ds' % (m, s)
+
+
+def timeSince(since, percent):
+    now = time.time()
+    s = now - since
+    es = s / (percent)
+    rs = es - s
+    return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 def check_end(lst,batch):
   sum = 0 
   for i in range(batch):
