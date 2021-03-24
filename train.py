@@ -7,9 +7,16 @@ import numpy as np
 from torch import optim
 import math
 import PhoNode
-import preprocess
+from preprocess import preprocess_batch,preprocessing,preprocessing_without_start,load_token_list_from_file,get_k_elements,create_forest,indexesFromSentence,tensorFromSentence
 import encoder
 import decoder
+import time
+import gensim
+path_to_file_vi = '../vi_model.bin'
+path_to_file_en = '../en_model.bin'
+en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
+vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 teacher_forcing_ratio = 0.5

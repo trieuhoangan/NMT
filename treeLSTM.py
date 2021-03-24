@@ -6,7 +6,7 @@ import torch.cuda as tc
 import numpy as np
 from torch import optim
 import math
-import PhoNode
+from PhoNode import Tree_,PhoNode
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

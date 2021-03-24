@@ -1,6 +1,11 @@
 # preprocessing data
 import re
-
+import  numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from PhoNode import Tree_,PhoNode
 def preprocessing(sentence):
   sentence = re.sub(r"&apos",r" ",sentence)
   sentence = re.sub(r"&quot;",r" ",sentence)
@@ -125,7 +130,7 @@ def create_forest(list_token_list,embedding_model):
     tree = Tree_(token_list)
     bin_tree = tree.make_binary_tree(tree.nodeList)
     bin_tree.clear_bin_tree()
-    bin_tree.convert_bin_tree_to_word_index(vi_model)
+    bin_tree.convert_bin_tree_to_word_index(embedding_model)
     # bin_tree.print_word_indices()
     forest.append(bin_tree)
   return forest

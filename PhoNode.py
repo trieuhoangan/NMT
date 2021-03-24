@@ -1,3 +1,4 @@
+
 class PhoNode:
   def __init__(self,text='',pos='',ner='',id=-1,level=-1,dependency_relation=''):
     self.text = text
