@@ -73,8 +73,7 @@ class Decoder(nn.Module):
     self.gru = nn.GRU(gru_input_size, hidden_size, dropout=dropout_p)
     #self.attn_combine = nn.Linear(hidden_size + embed_size, hidden_size)
     self.out = nn.Linear(hidden_size, output_size)
-    self.treeLSTM = BinaryTreeLSTMCell(input_size,hidden_size,max_length,self.embedding,dropout_p)
-  def forward(self, word_input, last_hidden, encoder_outputs, tree_encoder_outputs):
+  def forward(self, word_input, last_hidden, encoder_outputs):
     '''
     :param word_input:
         word input for current time step, in shape (B)
@@ -107,14 +106,11 @@ class Decoder(nn.Module):
     # if index == 0:
       # lhidden,lc = self.treeLSTM()
     attn_weights = self.attn(lhidden, encoder_outputs)
-    tree_attn_weights = self.attn(lhidden, tree_encoder_outputs)
 
     # the attention is not very correct, need to concat hidden state of tree and sequence before these. 
     context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # (B,1,V)
-    tree_context = tree_attn_weights.bmm(encoder_outputs.transpose(0, 1))
     context = context.transpose(0, 1)  # (1,B,V)
-    tree_context = tree_context.transpose(0,1)
-    context = tree_context + context
+
 
 
     # Combine embedded input word and attended context, run through RNN
@@ -128,7 +124,7 @@ class Decoder(nn.Module):
     # output = F.log_softmax(self.out(torch.cat((output, context), 1)))
     output = F.log_softmax(self.out(output))
     # Return final output, hidden state
-    return output, hidden.unsqueeze(0),attn_weights,tree_attn_weights
+    return output, hidden.unsqueeze(0),attn_weights
   '''
     tree_ouput has shape (1,B,H)
     seq_output has shape (1,B,H)
@@ -136,19 +132,3 @@ class Decoder(nn.Module):
     c_seq has shape (num)layer*direction,B,H)
     return first_hidden at shape (layers,direction,B,H)
   '''
-  def get_first_hidden(self,tree_last_hidden,seq_last_hidden,c_tree,c_seq):
-    first_hiddens = []
-    for i in range(int(tree_last_hidden.shape[1])):
-      hidden_one,c_one = self.treeLSTM.calculate(tree_last_hidden[0][i].unsqueeze(1),
-                                           seq_last_hidden[0][i].unsqueeze(1),
-                                           c_tree[0][i].unsqueeze(1),
-                                           c_seq[0][i].unsqueeze(1)
-                                           )
-      if i ==0:
-        first_hiddens = hidden_one
-      else:
-        first_hiddens = torch.cat((first_hiddens,hidden_one),dim=1)
-    first_hiddens = first_hiddens.transpose(0,1)
-    first_hiddens = first_hiddens.unsqueeze(0)
-    first_hiddens = first_hiddens.unsqueeze(0)
-    return first_hiddens
