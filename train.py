@@ -6,7 +6,6 @@ import torch.cuda as tc
 import numpy as np
 from torch import optim
 import math
-import PhoNode
 from preprocess import preprocess_batch,preprocessing,preprocessing_without_start,load_token_list_from_file,get_k_elements,create_forest,indexesFromSentence,tensorFromSentence
 import encoder
 import decoder
