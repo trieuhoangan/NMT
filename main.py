@@ -20,8 +20,8 @@ def normal_train():
     hidden_size = 100
     p_dropout = 0.01
     max_length = 870
-    path_to_file_vi = 'models/languages/vi_model.bin'
-    path_to_file_en = 'models/languages/en_model.bin'
+    path_to_file_vi = 'models/language_models/vi_model.bin'
+    path_to_file_en = 'models/language_models/en_model.bin'
     en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
     vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
 
@@ -35,7 +35,7 @@ def normal_train():
     save_path = 'models/checkpoint'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,0,0,save_path)
 def train_from_checkpoint():
-    path = 'mode/checkpoint/checkpoint.pt'
+    path = 'models/checkpoint/checkpoint.pt'
     checkpoint = torch.load(path)
     input_size = 100
     hidden_size = 100
