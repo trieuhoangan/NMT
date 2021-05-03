@@ -56,4 +56,4 @@ def train_from_checkpoint():
     save_path = 'models/trained'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,last_epoch,last_iter,save_path)
 if __name__=='__main__':
-    normal_train
+    normal_train()
