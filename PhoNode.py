@@ -136,15 +136,21 @@ class Tree_:
     num_token = len(token_list[3][0])
     nodeList = []
     for i in range(num_token):
-      idx = i
-      texts = token_list[0][0][i]
-      # pos = token_list[1][0][i][0]
-      # ner = token_list[2][0][i]
-      levels = token_list[3][0][i][0]
-      dependency_relations = token_list[3][0][i][1]
-      node = PhoNode(text=texts,id=idx,level = int(levels),dependency_relation=dependency_relations)
-      # node.print_out()
-      nodeList.append(node)
+      try:
+        idx = i
+        texts = token_list[0][0][i]
+        # pos = token_list[1][0][i][0]
+        # ner = token_list[2][0][i]
+        levels = token_list[3][0][i][0]
+        dependency_relations = token_list[3][0][i][1]
+        node = PhoNode(text=texts,id=idx,level = int(levels),dependency_relation=dependency_relations)
+        # node.print_out()
+        nodeList.append(node)
+      except:
+        print(num_token)
+        print(i)
+        print(len(token_list[0][0]))
+        print(token_list)
     return nodeList
 
   def getRoot(self):
