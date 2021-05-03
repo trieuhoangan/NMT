@@ -9,8 +9,8 @@ Original file is located at
 
 # !git clone https://github.com/VinAIResearch/PhoNLP
 
-from google.colab import drive
-drive.mount('/content/drive')
+# from google.colab import drive
+# drive.mount('/content/drive')
 
 # Commented out IPython magic to ensure Python compatibility.
 # %cd drive/MyDrive
@@ -54,14 +54,14 @@ def showPlot(points):
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
 
-!pip3 install -e .
+# !pip3 install -e .
 
 
 
-import phonlp
-dir = './models/dependency_parsing_models/pretrained_phonlp'
-# phonlp.download(save_dir=dir)
-parsing_model = phonlp.load(save_dir=dir)
+# import phonlp
+# dir = './models/dependency_parsing_models/pretrained_phonlp'
+# # phonlp.download(save_dir=dir)
+# parsing_model = phonlp.load(save_dir=dir)
 # model.print_out(model.annotate(text="Xin đọc về bút hiệu Nguyễn Ái Quốc tại Nguyễn Ái Quốc (bút hiệu) .")
 
 # token_list = parsing_model.annotate(output_type='conll',text="Nổ trong không khí hay cháy hoàn toàn diễn ra chậm hơn 15,000 lần so với những phản ứng trong động cơ xe")
@@ -356,104 +356,11 @@ class Tree_:
     for node in self.nodeList:
       node.print_out()
 
-# tree = Tree_(token_list)
-# # tree.print_out()
-# # tree.getRoot().print_out()
-# # tree.sort_as_level()
-# # tree.create_connection()
-# # tree.root.printChildList()
-# bin_tree = tree.make_binary_tree(tree.nodeList)
-# bin_tree.clear_bin_tree()
-# # bin_tree.convert_bin_tree_to_word_index()
-# # bin_tree.print_out_bin_tree()
-
-# preprocessing data
-def preprocessing(sentence):
-  sentence = re.sub(r"&apos",r" ",sentence)
-  sentence = re.sub(r"&quot;",r" ",sentence)
-  sentence = re.sub(r";s",r"s",sentence)
-  sentence = re.sub(r"([?.!,¿])", r" \1 ", sentence)
-  sentence = re.sub(r'[" "]', " ", sentence)
-  sentence = re.sub(r'[","]', "", sentence)
-  sentence = re.sub(r'&#93', "", sentence)
-  sentence = re.sub(r'&#91', "", sentence)
-  sentence.strip()
-  # sentence = '<start> '+sentence+' <end>'
-  return sentence
-def preprocess_batch(sentences):
-  real_sent = []
-  for sentence in sentences:
-    sentence = preprocessing(sentence)
-    sentence = '<start> '+sentence+' <end>'
-    # real_sent.append(sentence.split(' '))
-    real_sent.append(sentence)
-  return real_sent
-def preprocessing_without_start(sentences):
-  real_sent = []
-  for sentence in sentences:
-    sentence = preprocessing(sentence)
-    sentence = sentence+' <end>'
-    # real_sent.append(sentence.split(' '))
-    real_sent.append(sentence)
-  return real_sent
-def split_and_preprocessing_fortesting(sentences):
-  real_sent = []
-  for sentence in sentences:
-    sentence = preprocessing(sentence)
-    sentence = sentence+' <end>'
-    # real_sent.append(sentence.split(' '))
-    real_sent.append(sentence)
-  return real_sent
-
-# Commented out IPython magic to ensure Python compatibility.
-# %ls
-
-dev_data_en_path = '../DataForNMT/2013/dev-2012-en-vi/tst2012.en'
-dev_data_vi_path = '../DataForNMT/2013/dev-2012-en-vi/tst2012.vi'
-train_data_en_path = '../DataForNMT/2013/train-en-vi/train.en'
-train_data_vi_path = '../DataForNMT/2013/train-en-vi/train.vi'
-test_data_en_path = '../DataForNMT/2013/test-2013-en-vi/tst2013.en'
-test_data_vi_path = '../DataForNMT/2013/test-2013-en-vi/tst2013.vi'
-
-dev_text_en = open(dev_data_en_path, 'rb').read().decode(encoding='utf-8')
-dev_text_vi = open(dev_data_vi_path, 'rb').read().decode(encoding='utf-8')
-train_text_en = open(train_data_en_path, 'rb').read().decode(encoding='utf-8')
-train_text_vi = open(train_data_vi_path, 'rb').read().decode(encoding='utf-8')
-test_text_en = open(test_data_en_path, 'rb').read().decode(encoding='utf-8')
-test_text_vi = open(test_data_vi_path, 'rb').read().decode(encoding='utf-8')
-# print('Length of text: {} characters'.format(len(text_en)))
-# print(text_en[:500])
-
-train_vi_sentences = []
-train_en_sentences = []
-test_vi_sentences = []
-test_en_sentences = []
-dev_vi_sentences = []
-dev_en_sentences = []
-
-dev_en_sentences.extend(dev_text_en.split('\n'))
-train_en_sentences.extend(train_text_en.split('\n'))
-test_en_sentences.extend(test_text_en.split('\n'))
-
-dev_vi_sentences.extend(dev_text_vi.split('\n'))
-train_vi_sentences.extend(train_text_vi.split('\n'))
-test_vi_sentences.extend(test_text_vi.split('\n'))
-
-path_to_file_vi = '../models/language_models/vi_model.bin'
-path_to_file_en = '../models/language_models/en_model.bin'
+path_to_file_vi = 'models/language_models/vi_model.bin'
+path_to_file_en = 'models/language_models/en_model.bin'
 import gensim
 en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
 vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
-
-# bin_tree.convert_bin_tree_to_word_index(vi_model)
-# bin_tree.print_word_indices()
-
-dev_en = preprocessing_without_start(dev_en_sentences)
-dev_vi = preprocess_batch(dev_vi_sentences)
-train_en = preprocess_batch(train_en_sentences)
-train_vi = preprocess_batch(train_vi_sentences)
-test_vi = preprocess_batch(test_vi_sentences)
-test_en = preprocess_batch(test_en_sentences)
 
 def indexesFromSentence(model, sentence,MAX_SEQUENCE_LENGTH):
     # actuall_indices = [model.vocab[word].index for word in sentence if word!='']
@@ -553,35 +460,6 @@ def get_k_elements(source_list,batch_size,start_point):
   return result
 # k = get_k_elements(dev_vi,32,0)
 
-dev_file_path = '../DataForNMT/2013/dev_phonlp_token_list.txt'
-train_file_path = '../DataForNMT/2013/train_phonlp_token_list.txt'
-test_file_path = '../DataForNMT/2013/test_phonlp_token_list.txt'
-train_error_path = '../DataForNMT/2013/error_train_phonlp_token_list.txt'
-test_error_path = '../DataForNMT/2013/error_test_phonlp_token_list.txt'
-limit = 0
-from  torch.nn.utils.rnn import pack_padded_sequence
-# with open(train_file_path,'r',encoding='utf-8') as f:
-#   lines = f.readlines()
-#   # print(len(lines))
-#   limit += len(lines)
-# with open(train_error_path,'r',encoding='utf-8') as f:
-#   lines = f.readlines()
-#   # print(len(lines))
-#   limit += len(lines)
-# print(limit)
-# save_forest_to_file(dev_vi,parsing_model,dev_file_path)
-# error_train = save_forest_to_file(train_vi[limit:],parsing_model,train_file_path,train_error_path)
-# error_test = save_forest_to_file(test_vi,parsing_model,test_file_path,test_error_path)
-# lst = load_token_list_from_file(dev_file_path)
-
-
-
-# forest = create_forest(lst[:64],vi_model)
-# dev_vi_input,vi_lengths = tensorFromSentence(vi_model,dev_vi[:64],900)
-# dev_en_input,en_lengths = tensorFromSentence(en_model,dev_en[:64],900)
-# dev_vi_input = pack_padded_sequence(dev_vi_input,vi_lengths,batch_first =True,enforce_sorted = False)
-# dev_en_input = pack_padded_sequence(dev_en_input,en_lengths,batch_first =True,enforce_sorted = False)
-# print(len(forest))
 
 """Define TreeLSTM cell"""
 
@@ -755,16 +633,10 @@ class BinaryTreeLSTMCell(nn.Module):
   def get_inithidden(self):
     return torch.ones((self.hidden_size,1)).to(device)
 
-a = torch.randn((5,1))
-b = torch.randn((5,1))
-c = torch.randn((5,1))
-c = c.transpose(0,1).unsqueeze(0)
-c.shape
 
 
-
-path_to_file_vi = '../models/language_models/vi_model.bin'
-path_to_file_en = '../models/language_models/en_model.bin'
+path_to_file_vi = 'models/language_models/vi_model.bin'
+path_to_file_en = 'models/language_models/en_model.bin'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def get_pre_train_model(path_to_file):
   import gensim
@@ -773,21 +645,6 @@ def get_pre_train_model(path_to_file):
   embedding = nn.Embedding.from_pretrained(weights)
   return embedding
 embedding = get_pre_train_model(path_to_file_vi)
-
-# left = embedding(torch.Tensor([105]).to(torch.int64)).view(1, 1, -1)
-# right = embedding(torch.Tensor([3757]).to(torch.int64)).view(1, 1, -1)
-# # left[0].shape
-# input_left = torch.transpose(left[0], 0, 1)
-# input_right = torch.transpose(right[0], 0, 1)
-# # input_left = left[0]
-# # input_right = right[0]
-
-# cell = BinaryTreeLSTMCell(10,100,900,embedding,0.01)
-# ckl = torch.ones(100,1)
-# ckr = torch.ones(100,1) + 1
-# c,h = cell.calculate(input_left,input_right,ckl,ckr)
-# print("c shape: ",c.shape)
-# print("h shape",h.shape)
 
 """Define Encoder"""
 
@@ -823,22 +680,6 @@ class Tree2SeqEncoder(nn.Module):
     output_of_tree,c_of_tree = self.TreeLSTMcell(input_forest)
  
     return output_of_tree, output_of_sequence, c_of_tree,c_of_sequence
-
-# input_size = 100
-# hidden_size = 100
-# max_length = 900
-# p_dropout = 0.01
-# path_to_embedding = path_to_file_vi
-# enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_embedding)
-# h_tr,h_s,c_tr,c_s = enc(dev_vi_input,vi_lengths,forest)
-# print('htr',h_tr.shape)
-# print('hs',h_s.shape)
-# print('c_s_h',c_s[0].shape)
-# print('c_s_c',c_s[1].shape)
-# print('c_tr_h',c_tr[0].shape)
-# print('c_tr_c',c_tr[1].shape)
-
-# print(h_tr.shape)
 
 class Attn(nn.Module):
     def __init__(self, method, hidden_size):
@@ -987,22 +828,6 @@ class Decoder(nn.Module):
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
 
-# first_hidden = dec.get_first_hidden(c_tr[0],c_s[0],c_tr[1],c_s[1])
-
-# print(h_tr.shape)
-# print(h_tr[1][9])
-# first_hidden.shape
-
-# word_input = []
-# # en_model = get_pre_train_model(path_to_file_en)
-# for i in range(64):
-#   word_input.append(en_model.vocab['<start>'].index)
-# words = torch.tensor(word_input)
-# dec_output,dec_hidden,attn_weight_seq,attn_weight_tree = dec(words, first_hidden, h_s.transpose(0,1), h_tr.transpose(0,1))
-
-# print(dec_output.shape)
-# print(dec_hidden.shape)
-
 import time
 import math
 
@@ -1027,11 +852,7 @@ path_to_file_en = '../models/language_models/en_model.bin'
 import gensim
 en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
 vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
-b = list(en_model.vocab)
-bw = b[17]
-bw
 
-def remove
 
 teacher_forcing_ratio = 0.5
 def check_end(lst,batch):
@@ -1226,14 +1047,21 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
 
 enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_file_vi).to(device)
 dec = Decoder(input_size,hidden_size,max_length,path_to_file_en,hidden_size,len(en_model.vocab)).to(device)
-# target_data_path = '../DataForNMT/2013/dev-2012-en-vi/tst2012.en'
-# input_data_path = '../DataForNMT/2013/dev-2012-en-vi/tst2012.vi'
-# input_forest_path = '../DataForNMT/2013/dev_phonlp_token_list.txt'
-input_data_path = '../DataForNMT/2013/train-en-vi/train.vi'
-target_data_path = '../DataForNMT/2013/train-en-vi/train.en'
-input_forest_path = '../DataForNMT/2013/train_phonlp_token_list.txt'
+dev_data_en_path = 'data/valid.en'
+dev_data_vi_path = 'data/valid.vi'
+train_data_en_path = 'data/train.en'
+train_data_vi_path = 'data/train.vi'
+test_data_en_path = 'data/test.en'
+test_data_vi_path = 'data/test.vi'
+dev_tree_path = 'tree_data/valid_tree.txt'
+train_tree_path = 'tree_data/tree_train.txt'
+test_tree_path = 'tree_data/test_tree.txt'
+
+input_data_path = train_data_vi_path
+target_data_path = train_data_en_path
+input_forest_path = train_tree_path
 epoch = 15
-save_path = '../models/NMTmodels/training/200'
+save_path = 'models/checkpoint/'
 trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,0,0,save_path)
 
 from torchtext.data.metrics import bleu_score
