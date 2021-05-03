@@ -148,9 +148,10 @@ class Tree_:
         # node.print_out()
         nodeList.append(node)
       except:
+        print(token_list)
         print(num_token)
         print(i)
-        print(len(token_list[1][0][i]))
+        print(len(token_list[1][0]))
     return nodeList
 
   def getRoot(self):
