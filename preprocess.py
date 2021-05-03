@@ -136,6 +136,9 @@ def create_forest(list_token_list,embedding_model):
       forest.append(None)
       continue
     tree = Tree_(token_list)
+    if len(tree.token_list) == 0:
+      forest.append(None)
+      continue
     bin_tree = tree.make_binary_tree(tree.nodeList)
     bin_tree.clear_bin_tree()
     bin_tree.convert_bin_tree_to_word_index(embedding_model)

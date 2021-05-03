@@ -138,7 +138,6 @@ class BinaryTreeLSTMCell(nn.Module):
     hs = []
     while tmp.h is None:
       if tmp.left is None and tmp.right is None:
-        
         if len(tmp.part) > 0:
           if tmp.part[0].word_index !=-1:
             h = self.embedding(torch.Tensor([tmp.part[0].word_index]).to(torch.int64).to(device))
