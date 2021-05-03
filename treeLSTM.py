@@ -131,13 +131,13 @@ class BinaryTreeLSTMCell(nn.Module):
       return: output is at shape(T,1,H*num_directions ) in this case num_directions  = 1 <=> (T,1,H) => (T,H) to ease
       tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
     '''
-    if node == None:
+    if node is None:
       return torch.zeros(self.max_length,slef.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
     tmp = node
     output = None
     hs = []
-    while tmp.h == None:
-      if tmp.left == None and tmp.right == None:
+    while tmp.h is None:
+      if tmp.left is None and tmp.right is None:
         
         if len(tmp.part) > 0:
           if tmp.part[0].word_index !=-1:
@@ -152,12 +152,12 @@ class BinaryTreeLSTMCell(nn.Module):
         tmp.c = c_phr
         tmp = tmp.father
         continue
-      if tmp.left != None:
-        if tmp.left.h == None:
+      if tmp.left is not None:
+        if tmp.left.h is None:
           tmp = tmp.left
           continue
-      if tmp.right != None:
-        if tmp.right.h == None:
+      if tmp.right is not None:
+        if tmp.right.h is None:
           tmp = tmp.right
           continue
       h,c = self.calculate(tmp.left.h,tmp.right.h,tmp.left.c,tmp.right.c) # Hx1
@@ -165,7 +165,7 @@ class BinaryTreeLSTMCell(nn.Module):
       tmp.h = h
       tmp.c = c
       hs.append(h)
-      if tmp.father!= None:
+      if tmp.father is not None:
         tmp = tmp.father
     if len(hs) == 0:
       output = None
