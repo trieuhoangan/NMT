@@ -30,7 +30,7 @@ def normal_train():
     
     input_data_path = 'data/train.vi'
     target_data_path = 'data/train.en'
-    input_forest_path = 'data/train_phonlp_token_list.txt'
+    input_forest_path = 'data/tree_train.txt'
     epoch = 15
     save_path = 'models/checkpoint'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,0,0,save_path)
@@ -51,7 +51,7 @@ def train_from_checkpoint():
         last_epoch = last_epoch + 1
     input_data_path = 'data/train.vi'
     target_data_path = 'data/train.en'
-    input_forest_path = 'data/train_phonlp_token_list.txt'
+    input_forest_path = 'data/tree_train.txt'
     epoch = 15
     save_path = 'models/checkpoint'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,last_epoch,last_iter,save_path)
