@@ -133,7 +133,7 @@ class Tree_:
 
   def make_node_list(self,token_list):
     
-    num_token = len(token_list[0][0])
+    num_token = len(token_list[3][0])
     nodeList = []
     for i in range(num_token):
       idx = i
