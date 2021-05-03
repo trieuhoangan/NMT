@@ -7,7 +7,7 @@ import numpy as np
 from torch import optim
 import math
 from PhoNode import Tree_,PhoNode
-
+import copy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class BinaryTreeLSTMCell(nn.Module):
@@ -133,7 +133,7 @@ class BinaryTreeLSTMCell(nn.Module):
     '''
     if node is None:
       return torch.zeros(self.max_length,slef.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
-    tmp = node
+    tmp = copy.copy(node)
     output = None
     hs = []
     while tmp.h is None:
