@@ -133,7 +133,7 @@ class Tree_:
 
   def make_node_list(self,token_list):
     
-    num_token = len(token_list[3][0])
+    num_token = len(token_list[0][0])
     nodeList = []
     for i in range(num_token):
       try:
@@ -149,7 +149,7 @@ class Tree_:
       except:
         print(num_token)
         print(i)
-        print(len(token_list[0][0]))
+        print(len(token_list[3][0]))
         print(token_list)
     return nodeList
 
