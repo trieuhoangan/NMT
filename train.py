@@ -188,13 +188,13 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
     input_sentences.extend(raw_input_text.split('\n'))
     target_sentences.extend(raw_target_text.split('\n'))
 
-    input_sent = preprocess_batch(input_sentences[:75000])
-    target_sent = preprocessing_without_start(target_sentences[:75000])
+    input_sent = preprocess_batch(input_sentences[:100000])
+    target_sent = preprocessing_without_start(target_sentences[:100000])
     lst = load_token_list_from_file(input_forest_path)
 
     batch_size = 1
     max_length = 870
-    loss = trainIters(enc, dec,input_sent,lst[:75000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
+    loss = trainIters(enc, dec,input_sent,lst[:100000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     print('finish epoch {} - loss {}'.format(epoch+1,loss))
     # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
     torch.save({
