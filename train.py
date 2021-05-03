@@ -12,8 +12,8 @@ import encoder
 import decoder
 import time
 import gensim
-path_to_file_vi = '../vi_model.bin'
-path_to_file_en = '../en_model.bin'
+path_to_file_vi = 'models/language_models/vi_model.bin'
+path_to_file_en = 'models/language_models/en_model.bin'
 en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
 vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
 
