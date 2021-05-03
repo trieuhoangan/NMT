@@ -150,6 +150,7 @@ class Tree_:
       except:
         print(num_token)
         print(i)
+        print(len(token_list[1][0][i]))
     return nodeList
 
   def getRoot(self):
