@@ -10,11 +10,13 @@ def preprocessing(sentence):
   sentence = re.sub(r"&apos",r" ",sentence)
   sentence = re.sub(r"&quot;",r" ",sentence)
   sentence = re.sub(r";s",r"s",sentence)
-  sentence = re.sub(r"([?.!,¿])", r" \1 ", sentence)
+  sentence = re.sub(r"([?.!,¿])", r" ", sentence)
   sentence = re.sub(r'[" "]', " ", sentence)
   sentence = re.sub(r'[","]', "", sentence)
   sentence = re.sub(r'&#93', "", sentence)
   sentence = re.sub(r'&#91', "", sentence)
+  sentence = re.sub(r'"', "", sentence)
+  sentence = re.sub(r"'", "", sentence)
   sentence.strip()
   # sentence = '<start> '+sentence+' <end>'
   return sentence
