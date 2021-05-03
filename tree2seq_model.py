@@ -468,61 +468,21 @@ class BinaryTreeLSTMCell(nn.Module):
     TreeLSTMCell is defined based on the format of LSTM function of torch.nn
     TreeLSTMCell receive input as a batch of tree and calculate the state of each node in the tree
   '''
-  def __init__(self,input_size, hidden_size,MAX_LENGTH,embedding,p_dropout):
+  def __init__(self,input_size, hidden_size,MAX_LENGTH,embedding_path,p_dropout):
     super(BinaryTreeLSTMCell, self).__init__()
     self.input_size = input_size
     self.hidden_size = hidden_size
     self.dropout = nn.Dropout(p=p_dropout)
-    self.embedding = embedding
+    model = gensim.models.KeyedVectors.load_word2vec_format(embedding_path,binary=True)
+    weights = torch.FloatTensor(model.vectors).to(device)
+    self.embedding = nn.Embedding.from_pretrained(weights)
     self.max_length = MAX_LENGTH
-    # self.U_i_l = nn.Parameter(
-    #         torch.Tensor(hidden_size, hidden_size),
-    #         requires_grad=True)
-    self.U_i_l = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.U_i_r = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.b_i = nn.Parameter(
-            torch.ones(hidden_size, 1),
-            requires_grad=True).to(device)
-    self.U_fl_l = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.U_fl_r = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.b_fl = nn.Parameter(
-            torch.ones(hidden_size, 1),
-            requires_grad=True).to(device)
-    self.U_fr_l = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.U_fr_r = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.b_fr = nn.Parameter(
-            torch.ones(hidden_size, 1),
-            requires_grad=True).to(device)
-    self.U_o_l = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.U_o_r = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.b_o = nn.Parameter(
-            torch.ones(hidden_size, 1),
-            requires_grad=True).to(device)
-    self.U_c_l = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.U_c_r = nn.Parameter(
-            torch.ones(hidden_size, hidden_size),
-            requires_grad=True).to(device)
-    self.b_c = nn.Parameter(
-            torch.ones(hidden_size, 1),
-            requires_grad=True).to(device)
+    self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size)
+    self.U_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size, bias=False)
+    self.W_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size)
+    self.U_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size, bias=False)
+    self.W_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size)
+    self.U_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size, bias=False)
   '''
     input: root node of the tree
       return:
@@ -549,40 +509,49 @@ class BinaryTreeLSTMCell(nn.Module):
         forest_output = torch.cat((forest_output,tree_output.unsqueeze(0)),dim=0)
         forest_c = torch.cat((forest_c,tree_c.unsqueeze(0)),dim=0)
         forest_h = torch.cat((forest_h,tree_h.unsqueeze(0)),dim=0)
-        
+   
     return forest_output,(forest_h.transpose(0,1),forest_c.transpose(0,1))
-  '''
-    param input_left and input_right: 
-       left input and right input state of the decoder, in shape (H,1)
-    param c_k_left and c_k_right:
-        memory cell of left node and right node in shape (H,1)
-    return:
-        h and c of current node in shape (H,1)
-    the current state and memory are calculated as
-              ik  = σ (U(i)l*h_k_left + U(i)r*h_k_right + b(i)
-              flk = σ (U(fl)l*h_k_left + U(fl)r*h_k_right + b(fl))
-              frk = σ (U(fr)l*h_k_left + U(fr)r*h_k_right + b(fr))
-              ok  = σ (U(o)l*h_k_left + U(o)r*h_k_right + b(o))
-              ck = tanh(U(c)l*h_k_left + U(c)r*h_k_right + b(c))
-              c(phr)k = ik
 
-  '''
+
+
+  
   def calculate(self,input_left,input_right,c_k_left, c_k_right):
-    i = torch.sigmoid((torch.matmul(self.U_i_l,input_left) + torch.matmul(self.U_i_r,input_right) + self.b_i))
-    f_k_left = torch.sigmoid((torch.matmul(self.U_fl_l,input_left) + torch.matmul(self.U_fl_r,input_right) + self.b_fl))
-    f_k_right = torch.sigmoid((torch.matmul(self.U_fr_l,input_left) + torch.matmul(self.U_fr_r,input_right) + self.b_fr))
-    o_k = torch.sigmoid((torch.matmul(self.U_o_l,input_left) + torch.matmul(self.U_o_r,input_right) + self.b_o))
-    c_k = torch.tanh((torch.matmul(self.U_c_l,input_left) + torch.matmul(self.U_c_r,input_right) + self.b_c))
-    c_k_phr = i*c_k + f_k_left*c_k_left + f_k_right*c_k_right
-    h_k_phr = o_k*torch.tanh(c_k_phr)
+    '''
+      param input_left and input_right: 
+        left input and right input state of the decoder, in shape (H,1)
+      param c_k_left and c_k_right:
+          memory cell of left node and right node in shape (H,1)
+      return:
+          h and c of current node in shape (H,1)
+      the current state and memory are calculated as
+                ik  = σ (U(i)l*h_k_left + U(i)r*h_k_right + b(i)
+                flk = σ (U(fl)l*h_k_left + U(fl)r*h_k_right + b(fl))
+                frk = σ (U(fr)l*h_k_left + U(fr)r*h_k_right + b(fr))
+                ok  = σ (U(o)l*h_k_left + U(o)r*h_k_right + b(o))
+                ck = tanh(U(c)l*h_k_left + U(c)r*h_k_right + b(c))
+                c(phr)k = ik
+    '''
+    # iou = self.W_iou(x)
+    iock = self.W_iock(input_left) + self.U_iock(input_right)
+    fl = self.W_f_l(input_left) + self.U_f_l(input_right)
+    fr = self.W_f_r(input_left) + self.U_f_r(input_right)
+    i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
+    i = torch.sigmoid(i)
+    o = torch.sigmoid(o)
+    ck = torch.tanh(ck)
+    fl = torch.sigmoid(f)
+    fr = torch.sigmoid(f)
+    c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
+    h_k_phr = o*torch.tanh(c_k_phr)
     return h_k_phr,c_k_phr
-  '''
-      input : a single root node of a tree
-          tree_traversal function handle 1 tree each time it is called
-      return: output is at shape(T,1,H*num_directions ) in this case num_directions  = 1 <=> (T,1,H) => (T,H) to ease
-      tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
-  '''
+  
   def tree_traversal(self,node):
+    '''
+        input : a single root node of a tree
+            tree_traversal function handle 1 tree each time it is called
+        return: output is at shape(T,1,H*num_directions ) in this case num_directions  = 1 <=> (T,1,H) => (T,H) to ease
+        tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
+    '''
     tmp = node
     output = None
     hs = []
