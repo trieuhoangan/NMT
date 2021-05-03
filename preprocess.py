@@ -99,6 +99,9 @@ def load_token_list_from_file(file_path):
   for line in lines:
     if line =='':
       continue
+    if line =='None':
+      token_list.append([])
+      continue
     words = []
     poss = []
     ners = []
@@ -127,6 +130,9 @@ def load_token_list_from_file(file_path):
 def create_forest(list_token_list,embedding_model):
   forest = []
   for token_list in list_token_list:
+    if len(token_list) == 0:
+      forest.append(None)
+      continue
     tree = Tree_(token_list)
     bin_tree = tree.make_binary_tree(tree.nodeList)
     bin_tree.clear_bin_tree()

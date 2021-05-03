@@ -123,13 +123,16 @@ class BinaryTreeLSTMCell(nn.Module):
     c_k_phr = i*c_k + f_k_left*c_k_left + f_k_right*c_k_right
     h_k_phr = o_k*torch.tanh(c_k_phr)
     return h_k_phr,c_k_phr
-  '''
+  
+  def tree_traversal(self,node):
+    '''
       input : a single root node of a tree
           tree_traversal function handle 1 tree each time it is called
       return: output is at shape(T,1,H*num_directions ) in this case num_directions  = 1 <=> (T,1,H) => (T,H) to ease
       tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
-  '''
-  def tree_traversal(self,node):
+    '''
+    if node == None:
+      return torch.zeros(self.max_length,slef.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
     tmp = node
     output = None
     hs = []
