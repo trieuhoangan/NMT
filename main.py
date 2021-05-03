@@ -20,8 +20,8 @@ def normal_train():
     hidden_size = 100
     p_dropout = 0.01
     max_length = 870
-    path_to_file_vi = 'models/vi_model.bin'
-    path_to_file_en = 'models/en_model.bin'
+    path_to_file_vi = 'models/languages/vi_model.bin'
+    path_to_file_en = 'models/languages/en_model.bin'
     en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
     vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
 
@@ -32,10 +32,10 @@ def normal_train():
     target_data_path = 'data/train.en'
     input_forest_path = 'data/train_phonlp_token_list.txt'
     epoch = 15
-    save_path = 'trained'
+    save_path = 'models/checkpoint'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,0,0,save_path)
 def train_from_checkpoint():
-    path = 'trained/checkpoint.pt'
+    path = 'mode/checkpoint/checkpoint.pt'
     checkpoint = torch.load(path)
     input_size = 100
     hidden_size = 100
@@ -53,7 +53,7 @@ def train_from_checkpoint():
     target_data_path = 'data/train.en'
     input_forest_path = 'data/train_phonlp_token_list.txt'
     epoch = 15
-    save_path = 'models/trained'
+    save_path = 'models/checkpoint'
     trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,last_epoch,last_iter,save_path)
 if __name__=='__main__':
     normal_train()
