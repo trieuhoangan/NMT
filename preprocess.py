@@ -108,26 +108,29 @@ def load_token_list_from_file(file_path):
     poss = []
     ners = []
     head_indexes = []
-    feature = line.split('|')
-    for word in feature[0].split(','):
-      if word !='':
-        words.append(word)
-    for pos in feature[1].split(','):
-      if pos !='':
-        poss.append([pos])
-    for ner in feature[2].split(','):
-      if ner!='':
-        ners.append(ner)
-    for index in feature[3].split(','):
-      if index!='':
-        # part = index.split(':')
-        head_indexes.append(index.split(':'))
-    listone = []
-    listone.append([words])
-    listone.append([poss])
-    listone.append([ners])
-    listone.append([head_indexes])
-    token_list.append(listone)
+    try:
+      feature = line.split('|')
+      for word in feature[0].split(','):
+        if word !='':
+          words.append(word)
+      for pos in feature[1].split(','):
+        if pos !='':
+          poss.append([pos])
+      for ner in feature[2].split(','):
+        if ner!='':
+          ners.append(ner)
+      for index in feature[3].split(','):
+        if index!='':
+          # part = index.split(':')
+          head_indexes.append(index.split(':'))
+      listone = []
+      listone.append([words])
+      listone.append([poss])
+      listone.append([ners])
+      listone.append([head_indexes])
+      token_list.append(listone)
+    except:
+      print(line)
   return token_list
 def create_forest(list_token_list,embedding_model):
   forest = []
