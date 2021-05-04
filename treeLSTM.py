@@ -132,7 +132,7 @@ class BinaryTreeLSTMCell(nn.Module):
       tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
     '''
     if node is None:
-      return torch.zeros(self.max_length,slef.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
+      return torch.zeros(self.max_length,self.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
     tmp = copy.copy(node)
     output = None
     hs = []
