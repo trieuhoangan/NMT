@@ -136,44 +136,48 @@ class BinaryTreeLSTMCell(nn.Module):
     tmp = copy.copy(node)
     output = None
     hs = []
-    while tmp.h is None:
-      if tmp.left is None and tmp.right is None:
-        if len(tmp.part) > 0:
-          if tmp.part[0].word_index !=-1:
-            h = self.embedding(torch.Tensor([tmp.part[0].word_index]).to(torch.int64).to(device))
-            h = torch.transpose(h, 0, 1)
+    try:
+      while tmp.h is None:
+        if tmp.left is None and tmp.right is None:
+          if len(tmp.part) > 0:
+            if tmp.part[0].word_index !=-1:
+              h = self.embedding(torch.Tensor([tmp.part[0].word_index]).to(torch.int64).to(device))
+              h = torch.transpose(h, 0, 1)
+            else:
+              h = torch.ones(self.hidden_size,1).to(device)- 0.5
           else:
-            h = torch.ones(self.hidden_size,1).to(device)- 0.5
-        else:
-          h = torch.ones(self.hidden_size,1).to(device) -0.5
-        c_phr = torch.ones(self.hidden_size, 1).to(device) - 0.5
+            h = torch.ones(self.hidden_size,1).to(device) -0.5
+          c_phr = torch.ones(self.hidden_size, 1).to(device) - 0.5
+          tmp.h = h
+          tmp.c = c_phr
+          tmp = tmp.father
+          continue
+        if tmp.left is not None:
+          if tmp.left.h is None:
+            tmp = tmp.left
+            continue
+        if tmp.right is not None:
+          if tmp.right.h is None:
+            tmp = tmp.right
+            continue
+        h,c = self.calculate(tmp.left.h,tmp.right.h,tmp.left.c,tmp.right.c) # Hx1
+        # print(h.shape)
         tmp.h = h
-        tmp.c = c_phr
-        tmp = tmp.father
-        continue
-      if tmp.left is not None:
-        if tmp.left.h is None:
-          tmp = tmp.left
-          continue
-      if tmp.right is not None:
-        if tmp.right.h is None:
-          tmp = tmp.right
-          continue
-      h,c = self.calculate(tmp.left.h,tmp.right.h,tmp.left.c,tmp.right.c) # Hx1
-      # print(h.shape)
-      tmp.h = h
-      tmp.c = c
-      hs.append(h)
-      if tmp.father is not None:
-        tmp = tmp.father
+        tmp.c = c
+        hs.append(h)
+        if tmp.father is not None:
+          tmp = tmp.father
+    except:
+      print(type(node))
+
     if len(hs) == 0:
       output = None
-      print(None)
+      
     else:
       output = hs[0].transpose(0,1)
       for i in range(len(hs)):
         output = torch.cat((output,hs[i].transpose(0,1)),dim=0)
-      # print(output.shape)
+      
     return output, (tmp.h.transpose(0,1).to(device), tmp.c.transpose(0,1).to(device))
   def widen_output(self,output):
     while output.shape[0] < self.max_length:
