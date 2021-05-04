@@ -169,6 +169,7 @@ class BinaryTreeLSTMCell(nn.Module):
           tmp = tmp.father
     except:
       print(type(node))
+      return torch.zeros(self.max_length,self.hidden_size).to(device), (torch.zeros(1,self.hidden_size).to(device), torch.zeros(1,self.hidden_size).to(device))
 
     if len(hs) == 0:
       output = None
