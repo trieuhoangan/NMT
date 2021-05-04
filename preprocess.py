@@ -53,8 +53,12 @@ def indexesFromSentence(model, sentence,MAX_SEQUENCE_LENGTH):
     # length = 0
     for word in sentence.split(' '):
       if word!='':
-        indices[pos] = model.vocab[word].index
-        pos=pos+1
+        try:
+          indices[pos] = model.vocab[word].index
+          pos=pos+1
+        except:
+          indices[pos] = model.vocab['unk'].index
+          pos = pos+1
     return indices,pos
 
 def tensorFromSentence(model, sentences,MAX_SEQUENCE_LENGTH):
