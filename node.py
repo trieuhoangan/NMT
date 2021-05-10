@@ -1,5 +1,4 @@
 import copy
-from preprocess import load_token_list_from_file
 import numpy as np
 class Node():
     def __init__(self,id=-1,text='',level=-1):
@@ -185,7 +184,7 @@ class Tree():
                 if parsed_list[j].father == parsed_list[i]:
                     listi.append(j)
                     continue
-            adjency_list.append((parsed_list[i].text,listi))
+            adjency_list.append([parsed_list[i].text,listi])
         return adjency_list
 
 def load_token_list_from_file(file_path):
@@ -215,9 +214,12 @@ def create_node_list(token_list):
     nodeListes = []
     for tokens in token_list:
         nodes = []
-        num_word = len(tokens[0][0])
-        num_depen = len(tokens[1][0])
-        
+        try:
+            num_word = len(tokens[0][0])
+            num_depen = len(tokens[1][0])
+        except:
+            print(tokens)
+            break
         if num_word == num_depen:
             for i in range(0,num_word):
                 node = Node(id=i,text=tokens[0][0][i],level=int(tokens[1][0][i][0]))
@@ -230,14 +232,14 @@ def create_node_list(token_list):
         nodeListes.append(nodes)
     return nodeListes
 if __name__ == "__main__":
-    tokenList = load_token_list_from_file("data/dev_phonlp_token_list.txt")
+    tokenList = load_token_list_from_file("tree_data/tree_test.txt")
     nodeList = create_node_list(tokenList)
 
-    tree = Tree(nodeList[0])
+    # tree = Tree(nodeList[0])
     
-    root = tree.generate_tree()
-    root = tree.create_bin_tree(root)
-    # root.print_all()
-    # print(root.count_node())
-    adjency_list = tree.generate_adjency_list(root)
-    print(adjency_list)
+    # root = tree.generate_tree()
+    # root = tree.create_bin_tree(root)
+    # # root.print_all()
+    # # print(root.count_node())
+    # adjency_list = tree.generate_adjency_list(root)
+    # print(adjency_list)

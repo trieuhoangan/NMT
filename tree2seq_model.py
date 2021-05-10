@@ -26,6 +26,11 @@ Original file is located at
 
 """Prepare Dataset """
 
+import time
+from torchtext.data.metrics import bleu_score
+import gensim
+import matplotlib.ticker as ticker
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -34,7 +39,7 @@ import torch.cuda as tc
 import numpy as np
 from torch import optim
 import math
-
+from node import Tree, Node, create_node_list, load_token_list_from_file
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = torch.device('cuda:0')
 input_size = 100
@@ -42,9 +47,8 @@ hidden_size = 100
 p_dropout = 0.01
 max_length = 202
 
-import matplotlib.pyplot as plt
 plt.switch_backend('agg')
-import matplotlib.ticker as ticker
+
 
 def showPlot(points):
     plt.figure()
@@ -55,7 +59,6 @@ def showPlot(points):
     plt.plot(points)
 
 # !pip3 install -e .
-
 
 
 # import phonlp
@@ -70,336 +73,328 @@ def showPlot(points):
 # token_list[0][0]
 
 class PhoNode:
-  def __init__(self,text='',pos='',ner='',id=-1,level=-1,dependency_relation=''):
-    self.text = text
-    self.pos = pos
-    self.ner = ner
-    self.id = id
-    self.level = level
-    self.dependency_relation = dependency_relation
-    self.father = None
-    self.isLeaf = False
-    self.left = None
-    self.right = None
-    self.h = None
-    self.c = None
-    self.word_index = 0
-  def setRight(self,listnode):
-    self.right = listnode
+    def __init__(self, text='', pos='', ner='', id=-1, level=-1, dependency_relation=''):
+        self.text = text
+        self.pos = pos
+        self.ner = ner
+        self.id = id
+        self.level = level
+        self.dependency_relation = dependency_relation
+        self.father = None
+        self.isLeaf = False
+        self.left = None
+        self.right = None
+        self.h = None
+        self.c = None
+        self.word_index = 0
 
-  def setLeft(self, listnode):
-    self.left = listnode
+    def setRight(self, listnode):
+        self.right = listnode
 
-  def getLevel(self):
-    return self.level
+    def setLeft(self, listnode):
+        self.left = listnode
 
-  def getID(self):
-    return self.id
-    
-  def addFather(self,node):
-    self.father = node
+    def getLevel(self):
+        return self.level
+
+    def getID(self):
+        return self.id
+
+    def addFather(self, node):
+        self.father = node
+
 
 def make_binary_tree(token_list):
-  tmp = PhoNode()
-  
-  return tmp
+    tmp = PhoNode()
+
+    return tmp
+
 
 path_to_file_vi = 'models/language_models/vi_model.bin'
 path_to_file_en = 'models/language_models/en_model.bin'
-import gensim
-en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
-vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
+en_model = gensim.models.KeyedVectors.load_word2vec_format(
+    path_to_file_en, binary=True)
+vi_model = gensim.models.KeyedVectors.load_word2vec_format(
+    path_to_file_vi, binary=True)
 
-def indexesFromSentence(model, sentence,MAX_SEQUENCE_LENGTH):
+
+def indexesFromSentence(model, sentence, MAX_SEQUENCE_LENGTH):
     # actuall_indices = [model.vocab[word].index for word in sentence if word!='']
     indices = np.zeros(MAX_SEQUENCE_LENGTH)
     indices = indices+1
     pos = 0
     # length = 0
     for word in sentence.split(' '):
-      if word!='':
-        indices[pos] = model.vocab[word].index
-        pos=pos+1
-    return indices,pos
-def tensorFromSentence(model, sentences,MAX_SEQUENCE_LENGTH):
-  # print(len(sentences))
-  indexesList = []
-  lengths = []
-  for sentence in sentences:
-    indexes,length = indexesFromSentence(model, sentence,MAX_SEQUENCE_LENGTH)
-    indexesList.append(indexes)
-    lengths.append(length)
-    # indexes.append(EOS_token)
-  return torch.tensor(indexesList, dtype=torch.long, device=device),lengths
+        if word != '':
+            indices[pos] = model.vocab[word].index
+            pos = pos+1
+    return indices, pos
 
-#prepare forest
-def save_forest_to_file(sentence_batch,parsing_model,file_path,error_path):
-  error_parsing = []
-  add_error = open(error_path,'a',encoding='utf-8')
-  with open(file_path,'a',encoding='utf-8') as f:
-    for sentence in sentence_batch:
-      try:
-        token_list =  parsing_model.annotate(text=sentence)
-      except:
-        # add_error = open(error_path,'a',encoding='utf-8')
-        add_error.write(sentence+'\n')
-        # add_error.close()
-        # error_parsing.append(sentence)
-      text_form = ''
-      for word in token_list[0][0]:
-        text_form=text_form+word+','
-      text_form= text_form+'|'
-      for pos in token_list[1][0]:
-        text_form = text_form + pos[0] + ','
-      text_form= text_form+'|'
-      for ner in token_list[2][0]:
-        text_form=text_form+ner+','
-      text_form= text_form+'|'
-      for head_index in token_list[3][0]:
-        text_form = text_form + head_index[0]+':'+head_index[1]+','
-      f.write(text_form+'\n')
-    return error_parsing
+
+def tensorFromSentence(model, sentences, MAX_SEQUENCE_LENGTH):
+    # print(len(sentences))
+    indexesList = []
+    lengths = []
+    for sentence in sentences:
+        indexes, length = indexesFromSentence(
+            model, sentence, MAX_SEQUENCE_LENGTH)
+        indexesList.append(indexes)
+        lengths.append(length)
+        # indexes.append(EOS_token)
+    return torch.tensor(indexesList, dtype=torch.long, device=device), lengths
+
+# prepare forest
+
+
+def save_forest_to_file(sentence_batch, parsing_model, file_path, error_path):
+    error_parsing = []
+    add_error = open(error_path, 'a', encoding='utf-8')
+    with open(file_path, 'a', encoding='utf-8') as f:
+        for sentence in sentence_batch:
+            try:
+                token_list = parsing_model.annotate(text=sentence)
+            except:
+                # add_error = open(error_path,'a',encoding='utf-8')
+                add_error.write(sentence+'\n')
+                # add_error.close()
+                # error_parsing.append(sentence)
+            text_form = ''
+            for word in token_list[0][0]:
+                text_form = text_form+word+','
+            text_form = text_form+'|'
+            for pos in token_list[1][0]:
+                text_form = text_form + pos[0] + ','
+            text_form = text_form+'|'
+            for ner in token_list[2][0]:
+                text_form = text_form+ner+','
+            text_form = text_form+'|'
+            for head_index in token_list[3][0]:
+                text_form = text_form + head_index[0]+':'+head_index[1]+','
+            f.write(text_form+'\n')
+        return error_parsing
+
+
 def load_token_list_from_file(file_path):
-  '''
-    token list return is a list that is [[word],[pos],[ner],[level:depend]]
-  '''
+    '''
+      token list return is a list that is [[word],[pos],[ner],[level:depend]]
+    '''
 
-  lines =  open(file_path,'r',encoding='utf-8').read().split('\n')
-  token_list = []
-  for line in lines:
-    if line =='':
-      continue
-    if line == 'None':
-      listone = []
-      token_list.append(listone)
-      continue
-    words = []
-    poss = []
-    ners = []
-    head_indexes = []
-    feature = line.split('|')
-    for word in feature[0].split(','):
-      if word !='':
-        words.append(word)
-    for pos in feature[1].split(','):
-      if pos !='':
-        poss.append([pos])
-    for ner in feature[2].split(','):
-      if ner!='':
-        ners.append(ner)
-    for index in feature[3].split(','):
-      if index!='':
-        # part = index.split(':')
-        head_indexes.append(index.split(':'))
-    listone = []
-    listone.append([words])
-    listone.append([poss])
-    listone.append([ners])
-    listone.append([head_indexes])
-    token_list.append(listone)
-  return token_list
+    lines = open(file_path, 'r', encoding='utf-8').read().split('\n')
+    token_list = []
+    for line in lines:
+        if line == '':
+            continue
+        if line == 'None':
+            listone = []
+            token_list.append(listone)
+            continue
+        words = []
+        poss = []
+        ners = []
+        head_indexes = []
+        feature = line.split('|')
+        for word in feature[0].split(','):
+            if word != '':
+                words.append(word)
+        for pos in feature[1].split(','):
+            if pos != '':
+                poss.append([pos])
+        for ner in feature[2].split(','):
+            if ner != '':
+                ners.append(ner)
+        for index in feature[3].split(','):
+            if index != '':
+                # part = index.split(':')
+                head_indexes.append(index.split(':'))
+        listone = []
+        listone.append([words])
+        listone.append([poss])
+        listone.append([ners])
+        listone.append([head_indexes])
+        token_list.append(listone)
+    return token_list
 
 
-def create_forest(list_token_list,embedding_model):
-  forest = []
-  # TODO redefrine this function
-  return forest
+def create_forest(list_token_list, embedding_model):
+    forest = []
+    # TODO redefrine this function
+    return forest
 
-def get_k_elements(source_list,batch_size,start_point):
-  result = []
-  for i in range(0,batch_size):
-    result.append(source_list[start_point+i])
-  return result
 
+def get_k_elements(source_list, batch_size, start_point):
+    result = []
+    for i in range(0, batch_size):
+        result.append(source_list[start_point+i])
+    return result
 
 
 """Define TreeLSTM cell"""
+
+
 class BinaryTreeLSTMCell(nn.Module):
-  '''
-    TreeLSTMCell is defined based on the format of LSTM function of torch.nn
-    TreeLSTMCell receive input as a batch of tree and calculate the state of each node in the tree
-  '''
-  def __init__(self,input_size, hidden_size,MAX_LENGTH,embedding_path,p_dropout):
-    super(BinaryTreeLSTMCell, self).__init__()
-    self.input_size = input_size
-    self.hidden_size = hidden_size
-    self.dropout = nn.Dropout(p=p_dropout)
-    model = gensim.models.KeyedVectors.load_word2vec_format(embedding_path,binary=True)
-    weights = torch.FloatTensor(model.vectors).to(device)
-    self.embedding = nn.Embedding.from_pretrained(weights)
-    self.max_length = MAX_LENGTH
-    self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size)
-    self.U_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size, bias=False)
-    self.W_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size)
-    self.U_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size, bias=False)
-    self.W_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size)
-    self.U_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size, bias=False)
-  '''
+    '''
+      TreeLSTMCell is defined based on the format of LSTM function of torch.nn
+      TreeLSTMCell receive input as a batch of tree and calculate the state of each node in the tree
+    '''
+
+    def __init__(self, input_size, hidden_size, MAX_LENGTH, embedding_path, p_dropout):
+        super(BinaryTreeLSTMCell, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.dropout = nn.Dropout(p=p_dropout)
+        model = gensim.models.KeyedVectors.load_word2vec_format(
+            embedding_path, binary=True)
+        weights = torch.FloatTensor(model.vectors).to(device)
+        self.embedding = nn.Embedding.from_pretrained(weights)
+        self.max_length = MAX_LENGTH
+        self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size)
+        self.U_iock = torch.nn.Linear(
+            self.hidden_size, 3 * self.hidden_size, bias=False)
+        self.W_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size)
+        self.U_f_l = torch.nn.Linear(
+            self.hidden_size, self.hidden_size, bias=False)
+        self.W_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size)
+        self.U_f_r = torch.nn.Linear(
+            self.hidden_size, self.hidden_size, bias=False)
+    '''
     input: root node of the tree
       return:
         output at shape (T,B,H*num_direction) ( in this case num_direction is 1 so shape is T*B*H)
         Tuble (h,c) of shape (num_layer*numdirection,B,H) in this case (1,B,H)
   '''
-  def forward(self,input_forest):
-    forest_output = None
-    forest_h = None
-    forest_c = None
-    for tree in input_forest:
-      tree_output,(tree_h,tree_c) = self.tree_traversal(tree)
-      if tree_output == None:
-        tree_output = torch.zeros(self.max_length,self.hidden_size)
-        tree_h = torch.zeros(1,self.hidden_size)
-        tree_c = torch.zeros(1,self.hidden_size)
-      else:
-        tree_output = self.widen_output(tree_output)
-      if forest_output == None:
-        forest_output = tree_output.unsqueeze(0)
-        forest_h = tree_h.unsqueeze(0)
-        forest_c = tree_c.unsqueeze(0)
-      else:
-        forest_output = torch.cat((forest_output,tree_output.unsqueeze(0)),dim=0)
-        forest_c = torch.cat((forest_c,tree_c.unsqueeze(0)),dim=0)
-        forest_h = torch.cat((forest_h,tree_h.unsqueeze(0)),dim=0)
-   
-    return forest_output,(forest_h.transpose(0,1),forest_c.transpose(0,1))
 
+    def forward(self, input_list_batch):
+        forest_output = None
+        forest_h = None
+        forest_c = None
+        for tree in input_forest:
+            tree_output, (tree_h, tree_c) = self.tree_traversal(tree)
+            if tree_output == None:
+                tree_output = torch.zeros(self.max_length, self.hidden_size)
+                tree_h = torch.zeros(1, self.hidden_size)
+                tree_c = torch.zeros(1, self.hidden_size)
+            else:
+                tree_output = self.widen_output(tree_output)
+            if forest_output == None:
+                forest_output = tree_output.unsqueeze(0)
+                forest_h = tree_h.unsqueeze(0)
+                forest_c = tree_c.unsqueeze(0)
+            else:
+                forest_output = torch.cat(
+                    (forest_output, tree_output.unsqueeze(0)), dim=0)
+                forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
+                forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
 
+        return forest_output, (forest_h.transpose(0, 1), forest_c.transpose(0, 1))
 
-  
-  def calculate(self,input_left,input_right,c_k_left, c_k_right):
+        def tree_traversal(self, list):
+        '''
+      input is a list as : [(text,[id_left,id_right])] 
     '''
-      param input_left and input_right: 
-        left input and right input state of the decoder, in shape (H,1)
-      param c_k_left and c_k_right:
-          memory cell of left node and right node in shape (H,1)
-      return:
-          h and c of current node in shape (H,1)
-      the current state and memory are calculated as
-                ik  = σ (U(i)l*h_k_left + U(i)r*h_k_right + b(i)
-                flk = σ (U(fl)l*h_k_left + U(fl)r*h_k_right + b(fl))
-                frk = σ (U(fr)l*h_k_left + U(fr)r*h_k_right + b(fr))
-                ok  = σ (U(o)l*h_k_left + U(o)r*h_k_right + b(o))
-                ck = tanh(U(c)l*h_k_left + U(c)r*h_k_right + b(c))
-                c(phr)k = ik
-    '''
-    # iou = self.W_iou(x)
-    iock = self.W_iock(input_left) + self.U_iock(input_right)
-    fl = self.W_f_l(input_left) + self.U_f_l(input_right)
-    fr = self.W_f_r(input_left) + self.U_f_r(input_right)
-    i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
-    i = torch.sigmoid(i)
-    o = torch.sigmoid(o)
-    ck = torch.tanh(ck)
-    fl = torch.sigmoid(f)
-    fr = torch.sigmoid(f)
-    c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
-    h_k_phr = o*torch.tanh(c_k_phr)
-    return h_k_phr,c_k_phr
-  
-  def tree_traversal(self,node):
-    '''
-        input : a single root node of a tree
-            tree_traversal function handle 1 tree each time it is called
-        return: output is at shape(T,1,H*num_directions ) in this case num_directions  = 1 <=> (T,1,H) => (T,H) to ease
-        tuple(h,c) is at shape (num_layers * num_directions,1,H) <=> (1,H)
-    '''
-    tmp = node
-    output = None
-    hs = []
-    while tmp.h == None:
-      if tmp.left == None and tmp.right == None:
-        
-        if len(tmp.part) > 0:
-          if tmp.part[0].word_index !=-1:
-            h = self.embedding(torch.Tensor([tmp.part[0].word_index]).to(torch.int64).to(device))
-            h = torch.transpose(h, 0, 1)
-          else:
-            h = torch.ones(self.hidden_size,1).to(device)- 0.5
-        else:
-          h = torch.ones(self.hidden_size,1).to(device) -0.5
-        c_phr = torch.ones(self.hidden_size, 1).to(device) - 0.5
-        tmp.h = h
-        tmp.c = c_phr
-        tmp = tmp.father
-        continue
-      if tmp.left != None:
-        if tmp.left.h == None:
-          tmp = tmp.left
-          continue
-      if tmp.right != None:
-        if tmp.right.h == None:
-          tmp = tmp.right
-          continue
-      h,c = self.calculate(tmp.left.h,tmp.right.h,tmp.left.c,tmp.right.c) # Hx1
-      # print(h.shape)
-      tmp.h = h
-      tmp.c = c
-      hs.append(h)
-      if tmp.father!= None:
-        tmp = tmp.father
-    if len(hs) == 0:
-      output = None
-      print(None)
-    else:
-      output = hs[0].transpose(0,1)
-      for i in range(len(hs)):
-        output = torch.cat((output,hs[i].transpose(0,1)),dim=0)
-      # print(output.shape)
-    return output, (tmp.h.transpose(0,1).to(device), tmp.c.transpose(0,1).to(device))
-  def widen_output(self,output):
-    while output.shape[0] < self.max_length:
-      output = torch.cat((output,torch.zeros(1,self.hidden_size).to(device)),dim=0)
-    return output
-  def get_inithidden(self):
-    return torch.ones((self.hidden_size,1)).to(device)
+        numNode = len(list)
+        for i in range(numNode-1, 0, -1):
+			if list[i][0] != "":
+				list[i].append([self.embedding(torch.Tensor(list[i][0])).to(torch.int64).to(device),torch.zeros(self.hidden_size,1)])
+			else:
+				left_id = list[i][1][0]
+				right_id = list[i][1][1]
+				h_left = list[left_id][2][0]
+				c_left = list[left_id][2][1]
+				h_right = list[right_id][2][0]
+				c_right = list[right_id][2][1]
+				h,c = self.calculate(h_left,h_right,c_left,c_k_right)
+				list[i].append([h,c])
+        outputs = None
+		for i in range(numNode-1, 0, -1):
+			if list[i][0] == "":
+			outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
+		h = list[0][2][0]
+		c = list[0][2][1]
+		return outputs,(h,c)
 
+    def calculate(self, input_left, input_right, c_k_left, c_k_right):
+        '''
+          param input_left and input_right: 
+            left input and right input state of the decoder, in shape (H,1)
+          param c_k_left and c_k_right:
+              memory cell of left node and right node in shape (H,1)
+          return:
+              h and c of current node in shape (H,1)
+          the current state and memory are calculated as
+                    ik  = σ (U(i)l*h_k_left + U(i)r*h_k_right + b(i)
+                    flk = σ (U(fl)l*h_k_left + U(fl)r*h_k_right + b(fl))
+                    frk = σ (U(fr)l*h_k_left + U(fr)r*h_k_right + b(fr))
+                    ok  = σ (U(o)l*h_k_left + U(o)r*h_k_right + b(o))
+                    ck = tanh(U(c)l*h_k_left + U(c)r*h_k_right + b(c))
+                    c(phr)k = ik
+        '''
+        # iou = self.W_iou(x)
+        iock = self.W_iock(input_left) + self.U_iock(input_right)
+        fl = self.W_f_l(input_left) + self.U_f_l(input_right)
+        fr = self.W_f_r(input_left) + self.U_f_r(input_right)
+        i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
+        i = torch.sigmoid(i)
+        o = torch.sigmoid(o)
+        ck = torch.tanh(ck)
+        fl = torch.sigmoid(f)
+        fr = torch.sigmoid(f)
+        c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
+        h_k_phr = o*torch.tanh(c_k_phr)
+        return h_k_phr, c_k_phr
 
 
 path_to_file_vi = 'models/language_models/vi_model.bin'
 path_to_file_en = 'models/language_models/en_model.bin'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def get_pre_train_model(path_to_file):
-  import gensim
-  model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file,binary=True)
-  weights = torch.FloatTensor(model.vectors).to(device)
-  embedding = nn.Embedding.from_pretrained(weights)
-  return embedding
+    import gensim
+    model = gensim.models.KeyedVectors.load_word2vec_format(
+        path_to_file, binary=True)
+    weights = torch.FloatTensor(model.vectors).to(device)
+    embedding = nn.Embedding.from_pretrained(weights)
+    return embedding
+
+
 embedding = get_pre_train_model(path_to_file_vi)
 
 """Define Encoder"""
 
-import gensim
 
 class Tree2SeqEncoder(nn.Module):
-  def __init__(self,input_size,hidden_size,max_length,p_dropout,path_to_embedding):
-    super(Tree2SeqEncoder,self).__init__()
-    self.input_size = input_size
-    self.hidden_size = hidden_size
-    self.p_dropout = p_dropout
-    self.max_length = max_length
-    model = gensim.models.KeyedVectors.load_word2vec_format(path_to_embedding,binary=True)
-    weights = torch.FloatTensor(model.vectors).to(device)
-    self.embedding = nn.Embedding.from_pretrained(weights)
-    self.TreeLSTMcell = BinaryTreeLSTMCell(input_size,hidden_size,max_length,self.embedding,p_dropout)
-    self.LSTM = nn.LSTM(input_size, hidden_size,batch_first =True)
-    
-  
-  '''
+    def __init__(self, input_size, hidden_size, max_length, p_dropout, path_to_embedding):
+        super(Tree2SeqEncoder, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.p_dropout = p_dropout
+        self.max_length = max_length
+        model = gensim.models.KeyedVectors.load_word2vec_format(
+            path_to_embedding, binary=True)
+        weights = torch.FloatTensor(model.vectors).to(device)
+        self.embedding = nn.Embedding.from_pretrained(weights)
+        self.TreeLSTMcell = BinaryTreeLSTMCell(
+            input_size, hidden_size, max_length, self.embedding, p_dropout)
+        self.LSTM = nn.LSTM(input_size, hidden_size, batch_first=True)
+
+    '''
     input of sequence is shape of (B,T)
     input of Tree is shape (B)
     return : 
       output of tree in shape (B,T,H) and h,c in shape (1,B,H)
       output of sequence in shape (B,T,H) and h,c in shape (1,B,H)
   '''
-  def forward(self,input_sequences, input_forest):
-    input_sequences = self.embedding(input_sequences)
-    output, hidden_of_sequence = self.LSTM(input_sequences)
-    output_of_sequence = output
-    c_of_sequence = hidden_of_sequence
-    # print("finished compute sequence hidden")
-    output_of_tree,c_of_tree = self.TreeLSTMcell(input_forest)
- 
-    return output_of_tree, output_of_sequence, c_of_tree,c_of_sequence
+
+    def forward(self, input_sequences, input_forest):
+        input_sequences = self.embedding(input_sequences)
+        output, hidden_of_sequence = self.LSTM(input_sequences)
+        output_of_sequence = output
+        c_of_sequence = hidden_of_sequence
+        # print("finished compute sequence hidden")
+        output_of_tree, c_of_tree = self.TreeLSTMcell(input_forest)
+
+        return output_of_tree, output_of_sequence, c_of_tree, c_of_sequence
+
 
 class Attn(nn.Module):
     def __init__(self, method, hidden_size):
@@ -422,134 +417,142 @@ class Attn(nn.Module):
         :return
             attention energies in shape (B,T)
         '''
-        
+
         max_len = encoder_outputs.size(0)
         this_batch_size = encoder_outputs.size(1)
-        H = hidden.repeat(max_len,1,1).transpose(0,1)
-        encoder_outputs = encoder_outputs.transpose(0,1) # [B*T*H]
-        attn_energies = self.score(H,encoder_outputs) # compute attention score
-        
+        H = hidden.repeat(max_len, 1, 1).transpose(0, 1)
+        encoder_outputs = encoder_outputs.transpose(0, 1)  # [B*T*H]
+        # compute attention score
+        attn_energies = self.score(H, encoder_outputs)
+
         if src_len is not None:
             mask = []
             for b in range(src_len.size(0)):
-                mask.append([0] * src_len[b].item() + [1] * (encoder_outputs.size(1) - src_len[b].item()))
-            mask = cuda_(torch.ByteTensor(mask).unsqueeze(1)) # [B,1,T]
+                mask.append([0] * src_len[b].item() + [1] *
+                            (encoder_outputs.size(1) - src_len[b].item()))
+            mask = cuda_(torch.ByteTensor(mask).unsqueeze(1))  # [B,1,T]
             attn_energies = attn_energies.masked_fill(mask, -1e18)
-        
-        return F.softmax(attn_energies).unsqueeze(1) # normalize with softmax
+
+        return F.softmax(attn_energies).unsqueeze(1)  # normalize with softmax
 
     def score(self, hidden, encoder_outputs):
-        energy = torch.tanh(self.attn(torch.cat([hidden, encoder_outputs], 2))) # [B*T*2H]->[B*T*H]
-        energy = energy.transpose(2,1) # [B*H*T]
-        v = self.v.repeat(encoder_outputs.data.shape[0],1).unsqueeze(1) #[B*1*H]
-        energy = torch.bmm(v,energy) # [B*1*T]
-        return energy.squeeze(1) #[B*T]
+        # [B*T*2H]->[B*T*H]
+        energy = torch.tanh(self.attn(torch.cat([hidden, encoder_outputs], 2)))
+        energy = energy.transpose(2, 1)  # [B*H*T]
+        v = self.v.repeat(
+            encoder_outputs.data.shape[0], 1).unsqueeze(1)  # [B*1*H]
+        energy = torch.bmm(v, energy)  # [B*1*T]
+        return energy.squeeze(1)  # [B*T]
+
 
 def catch_error(objecive):
-  print(objecive)
+    print(objecive)
 
-import gensim
+
 class Decoder(nn.Module):
-  def __init__(self,input_size,hidden_size,max_length,embedding_path,embed_size,output_size,n_layers=1,dropout_p=0.1):
-    super(Decoder,self).__init__()
-    self.input_size = input_size
-    self.hidden_size = hidden_size
-    model = gensim.models.KeyedVectors.load_word2vec_format(embedding_path,binary=True)
-    weights = torch.FloatTensor(model.vectors).to(device)
-    self.embedding = nn.Embedding.from_pretrained(weights).to(device)
-    # Define parameters
-    self.output_size = output_size
-    self.n_layers = n_layers
-    self.dropout_p = dropout_p
-    # Define layers
-    self.dropout = nn.Dropout(dropout_p)
-    self.attn = Attn('concat', hidden_size)
-    gru_input_size = hidden_size + embed_size
-    self.gru = nn.GRU(gru_input_size, hidden_size, dropout=dropout_p)
-    #self.attn_combine = nn.Linear(hidden_size + embed_size, hidden_size)
-    self.out = nn.Linear(hidden_size, output_size)
-    self.treeLSTM = BinaryTreeLSTMCell(input_size,hidden_size,max_length,self.embedding,dropout_p)
-  def forward(self, word_input, last_hidden, encoder_outputs, tree_encoder_outputs):
+    def __init__(self, input_size, hidden_size, max_length, embedding_path, embed_size, output_size, n_layers=1, dropout_p=0.1):
+        super(Decoder, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        model = gensim.models.KeyedVectors.load_word2vec_format(
+            embedding_path, binary=True)
+        weights = torch.FloatTensor(model.vectors).to(device)
+        self.embedding = nn.Embedding.from_pretrained(weights).to(device)
+        # Define parameters
+        self.output_size = output_size
+        self.n_layers = n_layers
+        self.dropout_p = dropout_p
+        # Define layers
+        self.dropout = nn.Dropout(dropout_p)
+        self.attn = Attn('concat', hidden_size)
+        gru_input_size = hidden_size + embed_size
+        self.gru = nn.GRU(gru_input_size, hidden_size, dropout=dropout_p)
+        #self.attn_combine = nn.Linear(hidden_size + embed_size, hidden_size)
+        self.out = nn.Linear(hidden_size, output_size)
+        self.treeLSTM = BinaryTreeLSTMCell(
+            input_size, hidden_size, max_length, self.embedding, dropout_p)
+
+    def forward(self, word_input, last_hidden, encoder_outputs, tree_encoder_outputs):
+        '''
+        :param word_input:
+            word input for current time step, in shape (B)
+        :param last_hidden:
+            last hidden stat of the decoder, in shape (layers*direction*B*H)
+        :param encoder_outputs:
+            encoder outputs in shape (T*B*H)
+        :return
+            decoder output
+        Note: we run this one step at a time i.e. you should use a outer loop 
+            to process the whole sequence
+        Tip(update):
+        EncoderRNN may be bidirectional or have multiple layers, so the shape of hidden states can be 
+        different from that of DecoderRNN
+        You may have to manually guarantee that they have the same dimension outside this function,
+        e.g, select the encoder hidden state of the foward/backward pass.
+        '''
+        # Get the embedding of the current input word (last output word)
+
+        # word_embedded = self.embedding(word_input).view(1, word_input.size(0), -1) # (1,B,V)
+        try:
+            word_embedded = self.embedding(word_input)
+        except:
+            catch_error(word_input)
+        word_embedded = word_embedded.unsqueeze(0)
+        word_embedded = self.dropout(word_embedded)
+        # Calculate attention weights and apply to encoder outputs
+        lhidden = last_hidden[-1]
+        # print(lhidden.shape)
+        # if index == 0:
+        # lhidden,lc = self.treeLSTM()
+        attn_weights = self.attn(lhidden, encoder_outputs)
+        tree_attn_weights = self.attn(lhidden, tree_encoder_outputs)
+
+        # the attention is not very correct, need to concat hidden state of tree and sequence before these.
+        context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # (B,1,V)
+        tree_context = tree_attn_weights.bmm(encoder_outputs.transpose(0, 1))
+        context = context.transpose(0, 1)  # (1,B,V)
+        tree_context = tree_context.transpose(0, 1)
+        context = tree_context + context
+
+        # Combine embedded input word and attended context, run through RNN
+        rnn_input = torch.cat((word_embedded, context), 2)
+        # print('rrn input',rnn_input.shape)
+        # rnn_input = self.attn_combine(rnn_input) # use it in case your size of rnn_input is different
+        output, hidden = self.gru(rnn_input, lhidden)
+        output = output.squeeze(0)  # (1,B,V)->(B,V)
+        # context = context.squeeze(0)
+        # update: "context" input before final layer can be problematic.
+        # output = F.log_softmax(self.out(torch.cat((output, context), 1)))
+        output = F.log_softmax(self.out(output))
+        # Return final output, hidden state
+        return output, hidden.unsqueeze(0), attn_weights, tree_attn_weights
     '''
-    :param word_input:
-        word input for current time step, in shape (B)
-    :param last_hidden:
-        last hidden stat of the decoder, in shape (layers*direction*B*H)
-    :param encoder_outputs:
-        encoder outputs in shape (T*B*H)
-    :return
-        decoder output
-    Note: we run this one step at a time i.e. you should use a outer loop 
-        to process the whole sequence
-    Tip(update):
-    EncoderRNN may be bidirectional or have multiple layers, so the shape of hidden states can be 
-    different from that of DecoderRNN
-    You may have to manually guarantee that they have the same dimension outside this function,
-    e.g, select the encoder hidden state of the foward/backward pass.
-    '''
-    # Get the embedding of the current input word (last output word)
-    
-    # word_embedded = self.embedding(word_input).view(1, word_input.size(0), -1) # (1,B,V)
-    try:
-      word_embedded = self.embedding(word_input)
-    except:
-      catch_error(word_input)
-    word_embedded = word_embedded.unsqueeze(0)
-    word_embedded = self.dropout(word_embedded)
-    # Calculate attention weights and apply to encoder outputs
-    lhidden = last_hidden[-1]
-    # print(lhidden.shape)
-    # if index == 0:
-      # lhidden,lc = self.treeLSTM()
-    attn_weights = self.attn(lhidden, encoder_outputs)
-    tree_attn_weights = self.attn(lhidden, tree_encoder_outputs)
-
-    # the attention is not very correct, need to concat hidden state of tree and sequence before these. 
-    context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # (B,1,V)
-    tree_context = tree_attn_weights.bmm(encoder_outputs.transpose(0, 1))
-    context = context.transpose(0, 1)  # (1,B,V)
-    tree_context = tree_context.transpose(0,1)
-    context = tree_context + context
-
-
-    # Combine embedded input word and attended context, run through RNN
-    rnn_input = torch.cat((word_embedded, context), 2)
-    # print('rrn input',rnn_input.shape)
-    #rnn_input = self.attn_combine(rnn_input) # use it in case your size of rnn_input is different
-    output, hidden = self.gru(rnn_input, lhidden)
-    output = output.squeeze(0)  # (1,B,V)->(B,V)
-    # context = context.squeeze(0)
-    # update: "context" input before final layer can be problematic.
-    # output = F.log_softmax(self.out(torch.cat((output, context), 1)))
-    output = F.log_softmax(self.out(output))
-    # Return final output, hidden state
-    return output, hidden.unsqueeze(0),attn_weights,tree_attn_weights
-  '''
     tree_ouput has shape (1,B,H)
     seq_output has shape (1,B,H)
     c_tree has shape (num)layer*direction,B,H)
     c_seq has shape (num)layer*direction,B,H)
     return first_hidden at shape (layers,direction,B,H)
   '''
-  def get_first_hidden(self,tree_last_hidden,seq_last_hidden,c_tree,c_seq):
-    first_hiddens = []
-    for i in range(int(tree_last_hidden.shape[1])):
-      hidden_one,c_one = self.treeLSTM.calculate(tree_last_hidden[0][i].unsqueeze(1),
-                                           seq_last_hidden[0][i].unsqueeze(1),
-                                           c_tree[0][i].unsqueeze(1),
-                                           c_seq[0][i].unsqueeze(1)
-                                           )
-      if i ==0:
-        first_hiddens = hidden_one
-      else:
-        first_hiddens = torch.cat((first_hiddens,hidden_one),dim=1)
-    first_hiddens = first_hiddens.transpose(0,1)
-    first_hiddens = first_hiddens.unsqueeze(0)
-    first_hiddens = first_hiddens.unsqueeze(0)
-    return first_hiddens
 
-import time
-import math
+    def get_first_hidden(self, tree_last_hidden, seq_last_hidden, c_tree, c_seq):
+        first_hiddens = []
+        for i in range(int(tree_last_hidden.shape[1])):
+            hidden_one, c_one = self.treeLSTM.calculate(tree_last_hidden[0][i].unsqueeze(1),
+                                                        seq_last_hidden[0][i].unsqueeze(
+                                                            1),
+                                                        c_tree[0][i].unsqueeze(
+                                                            1),
+                                                        c_seq[0][i].unsqueeze(
+                                                            1)
+                                                        )
+            if i == 0:
+                first_hiddens = hidden_one
+            else:
+                first_hiddens = torch.cat((first_hiddens, hidden_one), dim=1)
+        first_hiddens = first_hiddens.transpose(0, 1)
+        first_hiddens = first_hiddens.unsqueeze(0)
+        first_hiddens = first_hiddens.unsqueeze(0)
+        return first_hiddens
 
 
 def asMinutes(s):
@@ -565,30 +568,38 @@ def timeSince(since, percent):
     rs = es - s
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 
+
 """Define training strategy"""
 
 path_to_file_vi = '../models/language_models/vi_model.bin'
 path_to_file_en = '../models/language_models/en_model.bin'
-import gensim
-en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
-vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
+en_model = gensim.models.KeyedVectors.load_word2vec_format(
+    path_to_file_en, binary=True)
+vi_model = gensim.models.KeyedVectors.load_word2vec_format(
+    path_to_file_vi, binary=True)
 
 
 teacher_forcing_ratio = 0.5
-def check_end(lst,batch):
-  sum = 0 
-  for i in range(batch):
-    sum += int(lst[i])
-  if sum == batch:
-    return True
-  else:
-    return False
+
+
+def check_end(lst, batch):
+    sum = 0
+    for i in range(batch):
+        sum += int(lst[i])
+    if sum == batch:
+        return True
+    else:
+        return False
+
+
 '''
   the input tensor and target tensor should be a batch of sentences
     shape of target and input are (B,T)
 
 '''
-def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size):
+
+
+def train(input_tensor, target_tensor, input_forest, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length, batch_size):
     # encoder_hidden = encoder.initHidden()
 
     encoder_optimizer.zero_grad()
@@ -596,45 +607,46 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
 
     target_length = 700
     loss = 0
-    
-    encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor,input_forest)
 
-    
+    encoder_seq_output, encoder_tree_output, encoder_seq_hc, encoder_tree_hc = encoder(
+        input_tensor, input_forest)
+
     word_input = []
     for i in range(batch_size):
-      word_input.append(en_model.vocab['<start>'].index)
+        word_input.append(en_model.vocab['<start>'].index)
     decoder_input = torch.tensor(word_input, device=device)
-    decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],encoder_seq_hc[0],encoder_tree_hc[1],encoder_seq_hc[1])
+    decoder_hidden = decoder.get_first_hidden(
+        encoder_tree_hc[0], encoder_seq_hc[0], encoder_tree_hc[1], encoder_seq_hc[1])
     # print('first hidden shape',decoder_hidden.shape)
     # print('enc_output shape',encoder_seq_output.shape)
     # use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
     use_teacher_forcing = True
-    
+
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
         # for bi in range(batch_size)
         for di in range(target_length):
-            decoder_output, decoder_hidden, decoder_attention,decoder_tree_attention = decoder(
-                decoder_input, decoder_hidden, encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1))
-          
-            loss += criterion(decoder_output, target_tensor[:,di])
-      
-            if check_end(decoder_input,batch_size):
-              # print(decoder_input)
-              break
-            decoder_input = target_tensor[:,di]  # Teacher forcing
-            
+            decoder_output, decoder_hidden, decoder_attention, decoder_tree_attention = decoder(
+                decoder_input, decoder_hidden, encoder_seq_output.transpose(0, 1), encoder_tree_output.transpose(0, 1))
+
+            loss += criterion(decoder_output, target_tensor[:, di])
+
+            if check_end(decoder_input, batch_size):
+                # print(decoder_input)
+                break
+            decoder_input = target_tensor[:, di]  # Teacher forcing
+
     else:
         # Without teacher forcing: use its own predictions as the next input
         for di in range(target_length):
-            decoder_output, decoder_hidden, decoder_attention,decoder_tree_attention = decoder(
-                decoder_input, decoder_hidden, encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1))
+            decoder_output, decoder_hidden, decoder_attention, decoder_tree_attention = decoder(
+                decoder_input, decoder_hidden, encoder_seq_output.transpose(0, 1), encoder_tree_output.transpose(0, 1))
             '''
               decoder is in shape (B,H)
               mean first word of each sentence.
             '''
-            loss += criterion(decoder_output, target_tensor[:,di])
-            decoder_input = torch.Tensor( target_tensor[:,di])
+            loss += criterion(decoder_output, target_tensor[:, di])
+            decoder_input = torch.Tensor(target_tensor[:, di])
             # topv, topi = decoder_output.topk(1)
 
             # decoder_input = topi.squeeze().detach()  # detach from history as input
@@ -647,13 +659,16 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
 
     return loss.item() / target_length
 
+
 '''
   split dataset into batch for training
   input_sentence is all sentence in the dataset
   input_forest is all trees that is parsed from sentences inside of the dataset
   target_sentence is all sentence that is translated from the other side
 '''
-def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,batch_size,input_model,target_model, MAX_LENGTH,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,print_every=400, plot_every=400):
+
+
+def trainIters(encoder, decoder, input_sentence, input_tokenlist, target_sentence, batch_size, input_model, target_model, MAX_LENGTH, save_path, epoch, last_iter, encoder_optimizer, decoder_optimizer, print_every=400, plot_every=400):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -668,15 +683,20 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
 
     for iter in range(last_iter+1, n_iters + 1):
         # print(iter)
-        input_batch = get_k_elements(source_list=input_sentence,batch_size=batch_size,start_point=checkpoint)
-        forest_batch = get_k_elements(source_list=input_tokenlist,batch_size=batch_size,start_point=checkpoint)
-        target_batch = get_k_elements(source_list=target_sentence,batch_size=batch_size,start_point=checkpoint)
+        input_batch = get_k_elements(
+            source_list=input_sentence, batch_size=batch_size, start_point=checkpoint)
+        forest_batch = get_k_elements(
+            source_list=input_tokenlist, batch_size=batch_size, start_point=checkpoint)
+        target_batch = get_k_elements(
+            source_list=target_sentence, batch_size=batch_size, start_point=checkpoint)
         checkpoint += batch_size
-        input_tensor,in_lengths = tensorFromSentence(model=input_model,sentences=input_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
-        target_tensor,tar_lengths = tensorFromSentence(model=target_model,sentences=target_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
-        input_forest = create_forest(forest_batch,input_model)
-        loss = train(input_tensor, target_tensor,input_forest ,encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size)
+        input_tensor, in_lengths = tensorFromSentence(
+            model=input_model, sentences=input_batch, MAX_SEQUENCE_LENGTH=MAX_LENGTH)
+        target_tensor, tar_lengths = tensorFromSentence(
+            model=target_model, sentences=target_batch, MAX_SEQUENCE_LENGTH=MAX_LENGTH)
+        input_forest = create_forest(forest_batch, input_model)
+        loss = train(input_tensor, target_tensor, input_forest, encoder,
+                     decoder, encoder_optimizer, decoder_optimizer, criterion, MAX_LENGTH, batch_size)
         print_loss_total += loss
         plot_loss_total += loss
 
@@ -690,58 +710,62 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             plot_loss_avg = plot_loss_total / plot_every
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
-        if iter>0 and iter % 5000 == 0:
-          enc_path = '{}/checkpoint.pt'.format(save_path)
-          torch.save({
-            'epoch':epoch,
-            'iter': iter,
-            'enc_state_dict': enc.state_dict(),
-            'dec_state_dict': dec.state_dict(),
-            'encoder_optimizer': encoder_optimizer.state_dict(),
-            'decoder_optimizer': decoder_optimizer.state_dict(),
-            'loss': loss,
+        if iter > 0 and iter % 5000 == 0:
+            enc_path = '{}/checkpoint.pt'.format(save_path)
+            torch.save({
+                'epoch': epoch,
+                'iter': iter,
+                'enc_state_dict': enc.state_dict(),
+                'dec_state_dict': dec.state_dict(),
+                'encoder_optimizer': encoder_optimizer.state_dict(),
+                'decoder_optimizer': decoder_optimizer.state_dict(),
+                'loss': loss,
             }, enc_path)
     # showPlot(plot_losses)
     return print_loss_total
 
-def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_epoch,last_epoch,last_iter,save_path,learning_rate=0.01):
-  import os
-  encoder_optimizer = optim.SGD(enc.parameters(), lr=learning_rate)
-  decoder_optimizer = optim.SGD(dec.parameters(), lr=learning_rate)
-  for epoch in range(last_epoch,num_epoch):
-    '''
-      load data from file each time begin a new epoch
-    '''
-    epoch_path = '{}/checkpoint.pt'.format(save_path)
-    # if os.path.exists(epoch_dir)== False:
-    #   os.mkdir(epoch_dir)
-    raw_input_text = open(input_data_path, 'rb').read().decode(encoding='utf-8')
-    raw_target_text = open(target_data_path, 'rb').read().decode(encoding='utf-8')
 
-    input_sentences = []
-    target_sentences = []
+def trainEpoch(enc, dec, input_data_path, target_data_path, input_forest_path, num_epoch, last_epoch, last_iter, save_path, learning_rate=0.01):
+    import os
+    encoder_optimizer = optim.SGD(enc.parameters(), lr=learning_rate)
+    decoder_optimizer = optim.SGD(dec.parameters(), lr=learning_rate)
+    for epoch in range(last_epoch, num_epoch):
+        '''
+          load data from file each time begin a new epoch
+        '''
+        epoch_path = '{}/checkpoint.pt'.format(save_path)
+        # if os.path.exists(epoch_dir)== False:
+        #   os.mkdir(epoch_dir)
+        raw_input_text = open(
+            input_data_path, 'rb').read().decode(encoding='utf-8')
+        raw_target_text = open(
+            target_data_path, 'rb').read().decode(encoding='utf-8')
 
-    input_sentences.extend(raw_input_text.split('\n'))
-    target_sentences.extend(raw_target_text.split('\n'))
+        input_sentences = []
+        target_sentences = []
 
-    input_sent = preprocess_batch(input_sentences[:75000])
-    target_sent = preprocessing_without_start(target_sentences[:75000])
-    lst = load_token_list_from_file(input_forest_path)
+        input_sentences.extend(raw_input_text.split('\n'))
+        target_sentences.extend(raw_target_text.split('\n'))
 
-    batch_size = 1
-    loss = trainIters(enc, dec,input_sent,lst[:75000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
-    print('finish epoch {} - loss {}'.format(epoch+1,loss))
-    # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
-    torch.save({
+        input_sent = preprocess_batch(input_sentences[:75000])
+        target_sent = preprocessing_without_start(target_sentences[:75000])
+        lst = load_token_list_from_file(input_forest_path)
+
+        batch_size = 1
+        loss = trainIters(enc, dec, input_sent, lst[:75000], target_sent, batch_size, vi_model,
+                          en_model, max_length, save_path, epoch, last_iter, encoder_optimizer, decoder_optimizer)
+        print('finish epoch {} - loss {}'.format(epoch+1, loss))
+        # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
+        torch.save({
             'epoch': epoch,
-            'iter':0,
+            'iter': 0,
             'enc_state_dict': enc.state_dict(),
             'dec_state_dict': dec.state_dict(),
             'encoder_optimizer': encoder_optimizer.state_dict(),
             'decoder_optimizer': decoder_optimizer.state_dict(),
             'loss': loss,
-            }, epoch_path)
-    last_iter = 0
+        }, epoch_path)
+        last_iter = 0
 
 # path = '../models/NMTmodels/training/checkpoint.pt'
 # checkpoint = torch.load(path)
@@ -765,8 +789,11 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
 # save_path = '../models/NMTmodels/training'
 # # trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,last_epoch,last_iter,save_path)
 
-enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_file_vi).to(device)
-dec = Decoder(input_size,hidden_size,max_length,path_to_file_en,hidden_size,len(en_model.vocab)).to(device)
+
+enc = Tree2SeqEncoder(input_size, hidden_size, max_length,
+                      p_dropout, path_to_file_vi).to(device)
+dec = Decoder(input_size, hidden_size, max_length, path_to_file_en,
+              hidden_size, len(en_model.vocab)).to(device)
 dev_data_en_path = 'data/valid.en'
 dev_data_vi_path = 'data/valid.vi'
 train_data_en_path = 'data/train.en'
@@ -782,71 +809,86 @@ target_data_path = train_data_en_path
 input_forest_path = train_tree_path
 epoch = 15
 save_path = 'models/checkpoint/'
-trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,epoch,0,0,save_path)
+trainEpoch(enc, dec, input_data_path, target_data_path,
+           input_forest_path, epoch, 0, 0, save_path)
 
-from torchtext.data.metrics import bleu_score
 '''
   sentence is a single Vietnamese sentence
 '''
-def get_words_from_index(listword,model):
-  listvocab = list(model.vocab)
-  result = []
-  # print(len(listword))
-  for word in listword:
-    result.append(listvocab[word])
-  # print(len(result))
-  return result
-def pre_translate(input_tensor,input_forest,encoder,decoder):
-  encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor.to(device),input_forest)
-  word_input = [en_model.vocab['<start>'].index]
-  decoder_input = torch.Tensor(word_input).to(torch.int64).to(device)
-  # print('first_input ',decoder_input)
-  decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],encoder_seq_hc[0],encoder_tree_hc[1],encoder_seq_hc[1])
-  output = []
-  while decoder_input.item()!=en_model.vocab['<end>'].index:
-      decoder_output, decoder_hidden, decoder_attention,decoder_tree_attention = decoder(
-          decoder_input, decoder_hidden, encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1))
-      '''
+
+
+def get_words_from_index(listword, model):
+    listvocab = list(model.vocab)
+    result = []
+    # print(len(listword))
+    for word in listword:
+        result.append(listvocab[word])
+    # print(len(result))
+    return result
+
+
+def pre_translate(input_tensor, input_forest, encoder, decoder):
+    encoder_seq_output, encoder_tree_output, encoder_seq_hc, encoder_tree_hc = encoder(
+        input_tensor.to(device), input_forest)
+    word_input = [en_model.vocab['<start>'].index]
+    decoder_input = torch.Tensor(word_input).to(torch.int64).to(device)
+    # print('first_input ',decoder_input)
+    decoder_hidden = decoder.get_first_hidden(
+        encoder_tree_hc[0], encoder_seq_hc[0], encoder_tree_hc[1], encoder_seq_hc[1])
+    output = []
+    while decoder_input.item() != en_model.vocab['<end>'].index:
+        decoder_output, decoder_hidden, decoder_attention, decoder_tree_attention = decoder(
+            decoder_input, decoder_hidden, encoder_seq_output.transpose(0, 1), encoder_tree_output.transpose(0, 1))
+        '''
         decoder is in shape (B,H)
         mean first word of each sentence.
       '''
-      # print('a')
-      topv, topi = decoder_output.topk(1)
-      # print(decoder_output.topk(2))
-      decoder_input = topi.squeeze(0).detach()  # detach from history as input
-      # print('\n last input ',decoder_input)
-      output.append(decoder_input[0].item())
-  # print(len(output))
-  output = get_words_from_index(output,en_model)
-  return output
-def translate(sentence,encoder,decoder):
-  sentence = preprocessing(sentence)
-  input_tensor,leng = tensorFromSentence(vi_model,[sentence],870)
-  tokenlist = parsing_model.annotate(output_type='conll',text=sentence)
-  input_forest = create_forest([tokenlist],vi_model)
-  output = pre_translate(input_tensor,input_forest,encoder,decoder)
-  return output
+        # print('a')
+        topv, topi = decoder_output.topk(1)
+        # print(decoder_output.topk(2))
+        # detach from history as input
+        decoder_input = topi.squeeze(0).detach()
+        # print('\n last input ',decoder_input)
+        output.append(decoder_input[0].item())
+    # print(len(output))
+    output = get_words_from_index(output, en_model)
+    return output
+
+
+def translate(sentence, encoder, decoder):
+    sentence = preprocessing(sentence)
+    input_tensor, leng = tensorFromSentence(vi_model, [sentence], 870)
+    tokenlist = parsing_model.annotate(output_type='conll', text=sentence)
+    input_forest = create_forest([tokenlist], vi_model)
+    output = pre_translate(input_tensor, input_forest, encoder, decoder)
+    return output
+
+
 '''
   input_test is list of sentence in real sentence
   input_forest is list of parsed tree 
 '''
-def evaluation(enc,dec,input_test,forest,target_test):
-  limit = len(input_test)
-  results = []
-  for i in range(limit):
-    result = pre_translate(input_test[i].unsqueeze(0),[forest[i]],enc,dec)
-    results.append(result)
-  bleuscore = bleu_score(results,target_test)
-  return bleuscore
 
-a = translate('Tôi đã rất tự hào về đất nước tôi .',enc,dec)
+
+def evaluation(enc, dec, input_test, forest, target_test):
+    limit = len(input_test)
+    results = []
+    for i in range(limit):
+        result = pre_translate(input_test[i].unsqueeze(0), [
+                               forest[i]], enc, dec)
+        results.append(result)
+    bleuscore = bleu_score(results, target_test)
+    return bleuscore
+
+
+a = translate('Tôi đã rất tự hào về đất nước tôi .', enc, dec)
 a
 
-test_tensor,lengs = tensorFromSentence(vi_model,test_vi,870)
+test_tensor, lengs = tensorFromSentence(vi_model, test_vi, 870)
 lst = load_token_list_from_file(dev_file_path)
-forest = create_forest(lst,vi_model)
+forest = create_forest(lst, vi_model)
 
-bleu = evaluation(enc,dec,test_tensor,forest,test_en)
+bleu = evaluation(enc, dec, test_tensor, forest, test_en)
 bleu
 
 print(bleu)
