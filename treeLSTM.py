@@ -118,11 +118,12 @@ class BinaryTreeLSTMCell(nn.Module):
                 h_right = list[right_id][2][0]
                 c_right = list[right_id][2][1]
                 h,c = self.calculate(h_left,h_right,c_left,c_k_right)
-                list[i].append([h,c])
+                list[i].append(h)
+                list[i].append(c)
         outputs = None
         for i in range(numNode-1, 0, -1):
             if list[i][0] == "":
                 outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
-        h = list[0][2][0]
-        c = list[0][2][1]
+        h = list[0][2]
+        c = list[0][3]
         return outputs,(h,c)
