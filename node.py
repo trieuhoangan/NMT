@@ -267,6 +267,7 @@ def make_forest_from_token_list(token_list,language_model):
         root = tree.create_bin_tree(root)
         adjency_list = tree.generate_adjency_list(root)
         adjency_list = get_indices_list(adjency_list,language_model)
+        print(adjency_list)
         forest.append(adjency_list)
     return forest
 
