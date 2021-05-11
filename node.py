@@ -249,10 +249,11 @@ def create_node_list(token_list):
 
 def get_indices_list(adjency_list,language_model):
     for node in adjency_list:
-        try:
-            node[0] = language_model.vocab[node[0]].index
-        except:
-            node[0] = language_model.vocab['unk'].index
+        if node[0]!="":
+            try:
+                node[0] = language_model.vocab[node[0]].index
+            except:
+                node[0] = language_model.vocab['unk'].index
     return adjency_list
 
 def make_forest_from_token_list(token_list,language_model):
