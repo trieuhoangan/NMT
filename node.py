@@ -259,13 +259,16 @@ def make_forest_from_token_list(token_list,language_model):
     nodeList = create_node_list(token_list)
     forest = []
     for nodes in nodeList:
+        if len(nodes) == 0:
+            forest.append([])
+            continue
         tree = Tree(nodes)
         root = tree.generate_tree()
         root = tree.create_bin_tree(root)
         adjency_list = tree.generate_adjency_list(root)
         adjency_list = get_indices_list(adjency_list,language_model)
         forest.append(adjency_list)
-    return adjency_list
+    return forest
 
 
 if __name__ == "__main__":
