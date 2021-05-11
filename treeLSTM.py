@@ -111,7 +111,7 @@ class BinaryTreeLSTMCell(nn.Module):
 		'''
         numNode = len(list)
         for i in range(numNode-1, 0, -1):
-			if list[i][0] != "":
+            if list[i][0] != "":
                 list[i].append([self.embedding(torch.Tensor(list[i][0])).to(torch.int64).to(device),torch.zeros(self.hidden_size,1)])
 			else:
 				left_id = list[i][1][0]
