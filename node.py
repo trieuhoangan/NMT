@@ -256,7 +256,7 @@ def get_indices_list(adjency_list,language_model):
     return adjency_list
 
 def make_forest_from_token_list(token_list,language_model):
-    nodeList = create_node_list(tokenList)
+    nodeList = create_node_list(token_list)
     forest = []
     for nodes in nodeList:
         tree = Tree(nodes)
