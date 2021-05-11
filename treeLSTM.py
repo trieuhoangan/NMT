@@ -22,10 +22,7 @@ class BinaryTreeLSTMCell(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.dropout = nn.Dropout(p=p_dropout)
-        model = gensim.models.KeyedVectors.load_word2vec_format(
-            embedding_path, binary=True)
-        weights = torch.FloatTensor(model.vectors).to(device)
-        self.embedding = nn.Embedding.from_pretrained(weights)
+        self.embedding = embedding
         self.max_length = MAX_LENGTH
         self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size)
         self.U_iock = torch.nn.Linear(
