@@ -105,7 +105,7 @@ class BinaryTreeLSTMCell(nn.Module):
     def get_inithidden(self):
         return torch.ones((self.hidden_size, 1)).to(device)
 
-	def tree_traversal(self, list):
+    def tree_traversal(self,list):
         '''
 			input is a list as : [(text,[id_left,id_right])] 
 		'''
