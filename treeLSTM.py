@@ -102,28 +102,28 @@ class BinaryTreeLSTMCell(nn.Module):
     def get_inithidden(self):
         return torch.ones((self.hidden_size, 1)).to(device)
 
-    def tree_traversal(self,list):
+    def tree_traversal(self,adj_list):
         '''
 			input is a list as : [(text,[id_left,id_right])] 
 		'''
-        numNode = len(list)
+        numNode = len(adj_list)
         for i in range(numNode-1, 0, -1):
-            if list[i][0] != "":
-                list[i].append([self.embedding(torch.Tensor(list[i][0]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1)])
+            if adj_list[i][0] != "":
+                adj_list[i].append([self.embedding(torch.Tensor(adj_list[i][0]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1)])
             else:
-                left_id = list[i][1][0]
-                right_id = list[i][1][1]
-                h_left = list[left_id][2][0]
-                c_left = list[left_id][2][1]
-                h_right = list[right_id][2][0]
-                c_right = list[right_id][2][1]
+                left_id = adj_list[i][1][0]
+                right_id = adj_list[i][1][1]
+                h_left = adj_list[left_id][2][0]
+                c_left = adj_list[left_id][2][1]
+                h_right = adj_list[right_id][2][0]
+                c_right = adj_list[right_id][2][1]
                 h,c = self.calculate(h_left,h_right,c_left,c_k_right)
-                list[i].append(h)
-                list[i].append(c)
+                adj_list[i].append(h)
+                adj_list[i].append(c)
         outputs = None
         for i in range(numNode-1, 0, -1):
-            if list[i][0] == "":
-                outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
-        h = list[0][2]
-        c = list[0][3]
+            if adj_list[i][0] == "":
+                outputs = torch.cat((outputs,adj_list[i][2][0].transpose(0,1)),dim=0)
+        h = adj_list[0][2]
+        c = adj_list[0][3]
         return outputs,(h,c)
