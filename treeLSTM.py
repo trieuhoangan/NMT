@@ -9,7 +9,7 @@ import math
 from PhoNode import Tree_, PhoNode
 import copy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+import gensim
 
 class BinaryTreeLSTMCell(nn.Module):
     '''
