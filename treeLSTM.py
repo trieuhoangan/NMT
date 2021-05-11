@@ -114,18 +114,18 @@ class BinaryTreeLSTMCell(nn.Module):
             if list[i][0] != "":
                 list[i].append([self.embedding(torch.Tensor(list[i][0])).to(torch.int64).to(device),torch.zeros(self.hidden_size,1)])
             else:
-				left_id = list[i][1][0]
-				right_id = list[i][1][1]
-				h_left = list[left_id][2][0]
-				c_left = list[left_id][2][1]
-				h_right = list[right_id][2][0]
-				c_right = list[right_id][2][1]
-				h,c = self.calculate(h_left,h_right,c_left,c_k_right)
-				list[i].append([h,c])
+                left_id = list[i][1][0]
+                right_id = list[i][1][1]
+                h_left = list[left_id][2][0]
+                c_left = list[left_id][2][1]
+                h_right = list[right_id][2][0]
+                c_right = list[right_id][2][1]
+                h,c = self.calculate(h_left,h_right,c_left,c_k_right)
+                list[i].append([h,c])
         outputs = None
-		for i in range(numNode-1, 0, -1):
-			if list[i][0] == "":
-			    outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
-		h = list[0][2][0]
-		c = list[0][2][1]
-		return outputs,(h,c)
+        for i in range(numNode-1, 0, -1):
+            if list[i][0] == "":
+                outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
+        h = list[0][2][0]
+        c = list[0][2][1]
+        return outputs,(h,c)
