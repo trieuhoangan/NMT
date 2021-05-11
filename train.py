@@ -8,7 +8,7 @@ from torch import optim
 import math
 import PhoNode
 from preprocess import preprocess_batch,preprocessing,preprocessing_without_start,load_token_list_from_file,get_k_elements,create_forest,indexesFromSentence,tensorFromSentence
-from node import load_simple_token_list_from_file,create_node_list
+from node import get_indices_list,load_simple_token_list_from_file,create_node_list,make_forest_from_token_list
 import encoder
 import decoder
 import time
@@ -139,7 +139,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
         input_tensor,in_lengths = tensorFromSentence(model=input_model,sentences=input_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
         target_tensor,tar_lengths = tensorFromSentence(model=target_model,sentences=target_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
         
-        input_forest = create_forest(forest_batch,input_model)
+        input_forest = make_forest_from_token_list(forest_batch,input_model)
         loss = train(input_tensor, target_tensor,input_forest ,encoder,
                      decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size)
         print_loss_total += loss
