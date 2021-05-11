@@ -8,6 +8,7 @@ from torch import optim
 import math
 import PhoNode
 from preprocess import preprocess_batch,preprocessing,preprocessing_without_start,load_token_list_from_file,get_k_elements,create_forest,indexesFromSentence,tensorFromSentence
+from node import load_simple_token_list_from_file,create_node_list
 import encoder
 import decoder
 import time
@@ -137,6 +138,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
         checkpoint += batch_size
         input_tensor,in_lengths = tensorFromSentence(model=input_model,sentences=input_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
         target_tensor,tar_lengths = tensorFromSentence(model=target_model,sentences=target_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
+        
         input_forest = create_forest(forest_batch,input_model)
         loss = train(input_tensor, target_tensor,input_forest ,encoder,
                      decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size)
@@ -190,7 +192,7 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
 
     input_sent = preprocess_batch(input_sentences[:100000])
     target_sent = preprocessing_without_start(target_sentences[:100000])
-    lst = load_token_list_from_file(input_forest_path)
+    lst = load_simple_token_list_from_file(input_forest_path)
 
     batch_size = 1
     max_length = 870

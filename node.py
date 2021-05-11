@@ -198,7 +198,7 @@ class Tree():
         return adjency_list
 
 
-def load_token_list_from_file(file_path):
+def load_simple_token_list_from_file(file_path):
     lines = open(file_path, 'r', encoding='utf-8').read().split('\n')
     token_list = []
     for line in lines:
@@ -247,9 +247,29 @@ def create_node_list(token_list):
         nodeListes.append(nodes)
     return nodeListes
 
+def get_indices_list(adjency_list,language_model):
+    for node in adjency_list:
+        try:
+            node[0] = language_model.vocab[node[0]].index
+        except:
+            node[0] = language_model.vocab['unk'].index
+    return adjency_list
+
+def make_forest_from_token_list(token_list,language_model):
+    nodeList = create_node_list(tokenList)
+    forest = []
+    for nodes in nodeList:
+        tree = Tree(nodes)
+        root = tree.generate_tree()
+        root = tree.create_bin_tree(root)
+        adjency_list = tree.generate_adjency_list(root)
+        adjency_list = get_indices_list(adjency_list,language_model)
+        forest.append(adjency_list)
+    return adjency_list
+
 
 if __name__ == "__main__":
-    tokenList = load_token_list_from_file("tree_data/tree_test.txt")
+    tokenList = load_simple_token_list_from_file("tree_data/tree_test.txt")
     nodeList = create_node_list(tokenList)
 
     tree = Tree(nodeList[0])

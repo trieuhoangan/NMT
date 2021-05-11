@@ -9,6 +9,7 @@ from torch import optim
 import math
 from treeLSTM import BinaryTreeLSTMCell
 from PhoNode import Tree_,PhoNode
+from node import Node,Tree
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Tree2SeqEncoder(nn.Module):
   def __init__(self,input_size,hidden_size,max_length,p_dropout,path_to_embedding):
