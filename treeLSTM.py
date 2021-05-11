@@ -113,7 +113,7 @@ class BinaryTreeLSTMCell(nn.Module):
         for i in range(numNode-1, 0, -1):
             if list[i][0] != "":
                 list[i].append([self.embedding(torch.Tensor(list[i][0])).to(torch.int64).to(device),torch.zeros(self.hidden_size,1)])
-			else:
+            else:
 				left_id = list[i][1][0]
 				right_id = list[i][1][1]
 				h_left = list[left_id][2][0]
@@ -125,7 +125,7 @@ class BinaryTreeLSTMCell(nn.Module):
         outputs = None
 		for i in range(numNode-1, 0, -1):
 			if list[i][0] == "":
-			outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
+			    outputs = torch.cat((outputs,list[i][2][0].transpose(0,1)),dim=0)
 		h = list[0][2][0]
 		c = list[0][2][1]
 		return outputs,(h,c)
