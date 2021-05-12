@@ -121,7 +121,7 @@ class BinaryTreeLSTMCell(nn.Module):
                 c_left = adj_list[left_id][2][1]
                 h_right = adj_list[right_id][2][0]
                 c_right = adj_list[right_id][2][1]
-                h,c = self.calculate(h_left,h_right,c_left,c_k_right)
+                h,c = self.calculate(h_left,h_right,c_left,c_right)
                 adj_list[i].append(h)
                 adj_list[i].append(c)
         outputs = None

@@ -92,7 +92,7 @@ class Tree():
         sorted_list = self.sort_as_level()
         levels = self.get_level_list(sorted_list)
         nodeNum = len(sorted_list)
-        for i in range(nodeNum-1, 1, -1):
+        for i in range(nodeNum-1, 0, -1):
             current_level = sorted_list[i].level
             level_index = levels.index(current_level)
             father_level = levels[level_index-1]
@@ -141,8 +141,8 @@ class Tree():
                 new_child.father = new_node
                 new_node.addChild(new_child)
             else:
-                new_node.addChild(node.childList[0])
                 node.childList[0].father = new_node
+                new_node.addChild(node.childList[0])
             node.childList = []
             node.childNum = 0
         else:
@@ -173,11 +173,12 @@ class Tree():
                 tmp.removeChild(tmp2)
                 tmp2 = self.up_node(tmp2)
                 tmp.addChild(tmp2)
+                tmp2.father = tmp
 
             list_cross_node.extend(tmp2.childList)
 
         return new_root
-
+    
     def generate_adjency_list(self, root):
         adjency_list = []
         awaiting_list = [root]
@@ -191,7 +192,7 @@ class Tree():
         for i in range(0, numNode):
             listi = []
             for j in range(0, numNode):
-                if parsed_list[j].father == parsed_list[i]:
+                if parsed_list[j] in parsed_list[i].childList:
                     listi.append(j)
                     continue
             adjency_list.append([parsed_list[i].text, listi])
@@ -268,20 +269,18 @@ def make_forest_from_token_list(token_list,language_model):
         root = tree.create_bin_tree(root)
         adjency_list = tree.generate_adjency_list(root)
         adjency_list = get_indices_list(adjency_list,language_model)
-        print(adjency_list)
         forest.append(adjency_list)
     return forest
 
 
 if __name__ == "__main__":
-    tokenList = load_simple_token_list_from_file("tree_data/tree_test.txt")
+    tokenList = load_simple_token_list_from_file("../test_site.txt")
     nodeList = create_node_list(tokenList)
-
+    
     tree = Tree(nodeList[0])
-
     root = tree.generate_tree()
     root = tree.create_bin_tree(root)
     # root.print_all()
-    # print(root.count_node())
+    print(root.count_node())
     adjency_list = tree.generate_adjency_list(root)
     print(adjency_list)
