@@ -24,15 +24,15 @@ class BinaryTreeLSTMCell(nn.Module):
         self.dropout = nn.Dropout(p=p_dropout)
         self.embedding = embedding
         self.max_length = MAX_LENGTH
-        self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size)
+        self.W_iock = torch.nn.Linear(self.hidden_size, 3 * self.hidden_size).to(device)
         self.U_iock = torch.nn.Linear(
-            self.hidden_size, 3 * self.hidden_size, bias=False)
-        self.W_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size)
+            self.hidden_size, 3 * self.hidden_size, bias=False).to(device)
+        self.W_f_l = torch.nn.Linear(self.hidden_size, self.hidden_size).to(device)
         self.U_f_l = torch.nn.Linear(
-            self.hidden_size, self.hidden_size, bias=False)
-        self.W_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size)
+            self.hidden_size, self.hidden_size, bias=False).to(device)
+        self.W_f_r = torch.nn.Linear(self.hidden_size, self.hidden_size).to(device)
         self.U_f_r = torch.nn.Linear(
-            self.hidden_size, self.hidden_size, bias=False)
+            self.hidden_size, self.hidden_size, bias=False).to(device)
     '''
     input: root node of the tree
       return:
@@ -115,7 +115,7 @@ class BinaryTreeLSTMCell(nn.Module):
             if adj_list[i][0] != "":
                 
                 try:
-                    adj_list[i].append([self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1)])
+                    adj_list[i].append([self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1).to(device)])
                     print("not err at ",adj_list[i][0])
                 except:
                     print("err at ",adj_list[i][0])
