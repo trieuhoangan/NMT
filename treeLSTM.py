@@ -83,8 +83,9 @@ class BinaryTreeLSTMCell(nn.Module):
         iock = self.W_iock(input_left) + self.U_iock(input_right)
         fl = self.W_f_l(input_left) + self.U_f_l(input_right)
         fr = self.W_f_r(input_left) + self.U_f_r(input_right)
-        print(iock.shape)
+        
         i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
+        print(i.shape)
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
         ck = torch.tanh(ck)
