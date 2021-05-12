@@ -87,8 +87,8 @@ class BinaryTreeLSTMCell(nn.Module):
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
         ck = torch.tanh(ck)
-        fl = torch.sigmoid(f)
-        fr = torch.sigmoid(f)
+        fl = torch.sigmoid(fl)
+        fr = torch.sigmoid(fr)
         c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
         h_k_phr = o*torch.tanh(c_k_phr)
         return h_k_phr, c_k_phr
