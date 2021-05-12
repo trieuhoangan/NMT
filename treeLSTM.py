@@ -83,6 +83,7 @@ class BinaryTreeLSTMCell(nn.Module):
         iock = self.W_iock(input_left) + self.U_iock(input_right)
         fl = self.W_f_l(input_left) + self.U_f_l(input_right)
         fr = self.W_f_r(input_left) + self.U_f_r(input_right)
+        print(iock.shape)
         i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
@@ -116,7 +117,6 @@ class BinaryTreeLSTMCell(nn.Module):
                 
                 try:
                     adj_list[i].append([self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1).to(device)])
-                    print("not err at ",adj_list[i][0])
                 except:
                     print("err at ",adj_list[i][0])
             else:
