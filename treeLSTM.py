@@ -83,9 +83,8 @@ class BinaryTreeLSTMCell(nn.Module):
         iock = self.W_iock(input_left) + self.U_iock(input_right)
         fl = self.W_f_l(input_left) + self.U_f_l(input_right)
         fr = self.W_f_r(input_left) + self.U_f_r(input_right)
-        
+        # print(iock.shape)
         i, o, ck = torch.split(iock, iock.size(1) // 3, dim=1)
-        print(i.shape)
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
         ck = torch.tanh(ck)
@@ -117,17 +116,21 @@ class BinaryTreeLSTMCell(nn.Module):
             if adj_list[i][0] != "":
                 
                 try:
-                    adj_list[i].append([self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1).to(device)])
+                    adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
+                    adj_list[i].append(torch.zeros(self.hidden_size,1).to(device))
                 except:
                     print("err at ",adj_list[i][0])
             else:
                 left_id = adj_list[i][1][0]
                 right_id = adj_list[i][1][1]
-                h_left = adj_list[left_id][2][0]
-                c_left = adj_list[left_id][2][1]
-                h_right = adj_list[right_id][2][0]
-                c_right = adj_list[right_id][2][1]
-                h,c = self.calculate(h_left,h_right,c_left,c_right)
+                h_left = adj_list[left_id][2]
+                c_left = adj_list[left_id][3]
+                h_right = adj_list[right_id][2]
+                c_right = adj_list[right_id][3]
+                try:
+                    h,c = self.calculate(h_left,h_right,c_left,c_right)
+                except:
+                    print(i)
                 adj_list[i].append(h)
                 adj_list[i].append(c)
         outputs = None
