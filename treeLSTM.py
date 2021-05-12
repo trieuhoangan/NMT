@@ -113,7 +113,11 @@ class BinaryTreeLSTMCell(nn.Module):
         numNode = len(adj_list)
         for i in range(numNode-1, 0, -1):
             if adj_list[i][0] != "":
-                adj_list[i].append([self.embedding(torch.Tensor(adj_list[i][0]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1)])
+                print("not err at ",adj_list[i][0])
+                try:
+                    adj_list[i].append([self.embedding(torch.Tensor(adj_list[i][0]).to(torch.int64).to(device)),torch.zeros(self.hidden_size,1)])
+                except:
+                    print("err at ",adj_list[i][0])
             else:
                 left_id = adj_list[i][1][0]
                 right_id = adj_list[i][1][1]
