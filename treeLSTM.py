@@ -111,6 +111,8 @@ class BinaryTreeLSTMCell(nn.Module):
             return torch.zeros(self.hidden_size,1),(torch.zeros(self.hidden_size,1),torch.zeros(self.hidden_size,1))
         # print(adj_list[0])
         numNode = len(adj_list)
+        for node in adj_list:
+            print(node[0])
         for i in range(numNode-1, 0, -1):
             if adj_list[i][0] != "":
                 print("not err at ",adj_list[i][0])
