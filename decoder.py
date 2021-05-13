@@ -8,6 +8,24 @@ import math
 import PhoNode
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from treeLSTM import BinaryTreeLSTMCell
+class NewAttn(nn.Module):
+  def __init__(self,method,hidden_size):
+    self.method = method
+    self.hidden_size = hidden_size
+
+  def forward(self,tree_output, seq_ouputs, cur_state):
+    '''
+      tree_outputs has size: (B,N-1,H)
+      seq_outputs has size: (B,N,H)
+      cur_state has size: (B,H)
+      output has size: (B,H)
+    '''
+    return None
+  def calculate_attn_weigh(self):
+    '''
+      output is a float number
+    '''
+    return None
 
 class Attn(nn.Module):
     def __init__(self, method, hidden_size):
