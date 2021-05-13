@@ -113,7 +113,6 @@ class BinaryTreeLSTMCell(nn.Module):
        
         numNode = len(adj_list)
         for i in range(numNode-1, -1, -1):
-            print(i)
             if adj_list[i][0] != "":
                 
                 try:
@@ -138,7 +137,6 @@ class BinaryTreeLSTMCell(nn.Module):
                     outputs = adj_list[i][2]
                 else:
                     outputs = torch.cat((outputs,adj_list[i][2].transpose(0,1)),dim=0)
-        print(adj_list[0])
         h = adj_list[0][2]
         c = adj_list[0][3]
         return outputs,(h,c)
