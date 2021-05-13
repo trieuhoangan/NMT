@@ -80,6 +80,8 @@ class BinaryTreeLSTMCell(nn.Module):
   '''
 
     def calculate(self, input_left, input_right, c_k_left, c_k_right):
+        print(input_left.shape)
+        print(input_right.shape)
         iock = self.W_iock(input_left) + self.U_iock(input_right)
         fl = self.W_f_l(input_left) + self.U_f_l(input_right)
         fr = self.W_f_r(input_left) + self.U_f_r(input_right)
