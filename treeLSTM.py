@@ -121,6 +121,7 @@ class BinaryTreeLSTMCell(nn.Module):
                 except:
                     print("err at ",adj_list[i][0])
             else:
+                print(i)
                 left_id = adj_list[i][1][0]
                 right_id = adj_list[i][1][1]
                 h_left = adj_list[left_id][2]
