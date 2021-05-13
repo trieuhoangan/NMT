@@ -158,14 +158,14 @@ class Decoder(nn.Module):
     first_hiddens = []
     
     for i in range(int(tree_last_hidden.shape[1])):
-      print(tree_last_hidden[0][i].unsqueeze(1).shape)
-      print(seq_last_hidden[0][i].unsqueeze(1).shape)
-      print(c_tree[0][i].unsqueeze(1).shape)
-      print(c_seq[0][i].unsqueeze(1).shape)
-      hidden_one,c_one = self.treeLSTM.calculate(tree_last_hidden[0][i].unsqueeze(1),
-                                           seq_last_hidden[0][i].unsqueeze(1),
-                                           c_tree[0][i].unsqueeze(1),
-                                           c_seq[0][i].unsqueeze(1)
+      print(tree_last_hidden[0][i].unsqueeze(0).shape)
+      print(seq_last_hidden[0][i].unsqueeze(0).shape)
+      print(c_tree[0][i].unsqueeze(0).shape)
+      print(c_seq[0][i].unsqueeze(0).shape)
+      hidden_one,c_one = self.treeLSTM.calculate(tree_last_hidden[0][i].unsqueeze(0),
+                                           seq_last_hidden[0][i].unsqueeze(0),
+                                           c_tree[0][i].unsqueeze(0),
+                                           c_seq[0][i].unsqueeze(0)
                                            )
       if i ==0:
         first_hiddens = hidden_one
