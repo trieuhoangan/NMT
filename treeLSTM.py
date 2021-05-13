@@ -140,7 +140,7 @@ class BinaryTreeLSTMCell(nn.Module):
                     outputs = adj_list[i][2]
                 else:
                     outputs = torch.cat((outputs,adj_list[i][2].transpose(0,1)),dim=0)
-        print(len(adj_list[0]))
+        print(adj_list[0])
         h = adj_list[0][2]
         c = adj_list[0][3]
         return outputs,(h,c)
