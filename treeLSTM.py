@@ -91,13 +91,14 @@ class BinaryTreeLSTMCell(nn.Module):
         i = torch.sigmoid(i)
         o = torch.sigmoid(o)
         ck = torch.tanh(ck)
-        print("i ",i.shape)
-        print("o ",o.shape)
-        print("ck ",ck.shape)
+        
         fl = torch.sigmoid(fl)
         fr = torch.sigmoid(fr)
         c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
         h_k_phr = o*torch.tanh(c_k_phr)
+        print("c ",c_k_phr.shape)
+        print("h ",h_k_phr.shape)
+        # print("ck ",ck.shape)
         return h_k_phr, c_k_phr
 
     def widen_output(self, output):
