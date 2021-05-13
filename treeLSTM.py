@@ -94,6 +94,8 @@ class BinaryTreeLSTMCell(nn.Module):
         
         fl = torch.sigmoid(fl)
         fr = torch.sigmoid(fr)
+        print("fl ",fl.shape)
+        print("fr ",fr.shape)
         c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
         h_k_phr = o*torch.tanh(c_k_phr)
         print("c ",c_k_phr.shape)
