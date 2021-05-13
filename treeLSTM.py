@@ -113,6 +113,7 @@ class BinaryTreeLSTMCell(nn.Module):
        
         numNode = len(adj_list)
         for i in range(numNode-1, 0, -1):
+            print(i)
             if adj_list[i][0] != "":
                 
                 try:
@@ -121,17 +122,13 @@ class BinaryTreeLSTMCell(nn.Module):
                 except:
                     print("err at ",adj_list[i][0])
             else:
-                print(i)
                 left_id = adj_list[i][1][0]
                 right_id = adj_list[i][1][1]
                 h_left = adj_list[left_id][2]
                 c_left = adj_list[left_id][3]
                 h_right = adj_list[right_id][2]
                 c_right = adj_list[right_id][3]
-                try:
-                    h,c = self.calculate(h_left,h_right,c_left,c_right)
-                except:
-                    print(i)
+                h,c = self.calculate(h_left,h_right,c_left,c_right)
                 adj_list[i].append(h)
                 adj_list[i].append(c)
         outputs = None
