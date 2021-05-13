@@ -94,13 +94,11 @@ class BinaryTreeLSTMCell(nn.Module):
         
         fl = torch.sigmoid(fl)
         fr = torch.sigmoid(fr)
-        print("fl ",fl.shape)
-        print("fr ",fr.shape)
+
         c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
         h_k_phr = o*torch.tanh(c_k_phr)
-        print("c ",c_k_phr.shape)
-        print("h ",h_k_phr.shape)
-        # print("ck ",ck.shape)
+
+
         return h_k_phr, c_k_phr
 
     def widen_output(self, output):
@@ -123,7 +121,6 @@ class BinaryTreeLSTMCell(nn.Module):
         numNode = len(adj_list)
         for i in range(numNode-1, -1, -1):
             if adj_list[i][0] != "":
-                
                 try:
                     adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
                     adj_list[i].append(torch.zeros(1,self.hidden_size).to(device))
@@ -148,5 +145,4 @@ class BinaryTreeLSTMCell(nn.Module):
                     outputs = torch.cat((outputs,adj_list[i][2]),dim=0)
         h = adj_list[0][2]
         c = adj_list[0][3]
-        print("outputs " ,outputs.shape)
         return outputs,(h,c)
