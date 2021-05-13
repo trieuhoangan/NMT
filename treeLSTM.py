@@ -126,7 +126,7 @@ class BinaryTreeLSTMCell(nn.Module):
                 
                 try:
                     adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
-                    adj_list[i].append(torch.zeros(self.hidden_size,1).to(device))
+                    adj_list[i].append(torch.zeros(1,self.hidden_size).to(device))
                 except:
                     print("err at ",adj_list[i][0])
             else:
