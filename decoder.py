@@ -226,7 +226,7 @@ class NewDecoder(nn.Module):
     self.out = nn.Linear(hidden_size, output_size)
     self.LSTM = nn.LSTMCell(input_size,hidden_size)
     self.combine_context = nn.Linear(hidden_size*2,hidden_size,bias=True)
-  def forward(self, tree_output, seq_output, word_indices, last_hidden):
+  def forward(self, word_indices,last_hidden,tree_output, seq_output):
     '''
     :param word_input:
         word input for current time step, in shape (B)
