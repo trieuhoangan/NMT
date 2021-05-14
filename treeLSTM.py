@@ -46,11 +46,11 @@ class BinaryTreeLSTMCell(nn.Module):
         for tree in input_forest:
             tree_output, (tree_h, tree_c) = self.tree_traversal(tree)
             if tree_output is None:
-                tree_output = torch.zeros(self.max_length, self.hidden_size)
+                tree_output = torch.zeros(1, self.hidden_size)
                 tree_h = torch.zeros(1, self.hidden_size)
                 tree_c = torch.zeros(1, self.hidden_size)
             else:
-                tree_output = self.widen_output(tree_output)
+                # tree_output = self.widen_output(tree_output)
             if forest_output is None:
                 forest_output = tree_output.unsqueeze(0)
                 forest_h = tree_h.unsqueeze(0)

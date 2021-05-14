@@ -272,3 +272,4 @@ class NewDecoder(nn.Module):
     first_hiddens = first_hiddens.unsqueeze(0)
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
+  
