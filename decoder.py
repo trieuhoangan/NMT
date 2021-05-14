@@ -245,10 +245,10 @@ class NewDecoder(nn.Module):
     You may have to manually guarantee that they have the same dimension outside this function,
     e.g, select the encoder hidden state of the foward/backward pass.
     '''
-    print(tree_output.shape)
-    print(seq_output.shape)
-    print(word_indices.shape)
-    print(last_hidden.shape)
+    print("tree ",tree_output.shape)
+    print("seq ",seq_output.shape)
+    print("word ",word_indices.shape)
+    print("hidden ",last_hidden.shape)
     return None
   def get_first_hidden(self,tree_last_hidden,seq_last_hidden,c_tree,c_seq):
     '''
