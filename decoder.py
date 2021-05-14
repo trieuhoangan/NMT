@@ -265,8 +265,8 @@ class NewDecoder(nn.Module):
       if i ==0:
         first_hiddens = hidden_one
       else:
-        first_hiddens = torch.cat((first_hiddens,hidden_one),dim=1)
-    first_hiddens = first_hiddens.transpose(0,1)
+        first_hiddens = torch.cat((first_hiddens,hidden_one),dim=0)
+    # first_hiddens = first_hiddens.transpose(0,1)
     first_hiddens = first_hiddens.unsqueeze(0)
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
