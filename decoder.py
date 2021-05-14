@@ -223,7 +223,7 @@ class NewDecoder(nn.Module):
     self.n_layers = n_layers
     self.dropout_p = dropout_p
     self.out = nn.Linear(hidden_size, output_size)
-    self.LSTM = nn.LSTMCell(input_size,hidden_size,batch_first=True)
+    self.LSTM = nn.LSTMCell(input_size,hidden_size)
     self.combine_context = nn.Linear(hidden_size*2,hidden_size,bias=True)
   def forward(self, tree_output, seq_output, word_indices, last_hidden):
     '''
