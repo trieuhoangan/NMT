@@ -10,7 +10,7 @@ from PhoNode import Tree_,PhoNode
 import preprocess
 from treeLSTM import BinaryTreeLSTMCell
 from encoder import Tree2SeqEncoder
-from decoder import Decoder,Attn
+from decoder import Decoder,Attn,NewDecoder
 from train import trainEpoch,trainIters,train
 import gensim
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
