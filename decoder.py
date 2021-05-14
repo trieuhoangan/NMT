@@ -157,6 +157,7 @@ class Decoder(nn.Module):
     return first_hiddens
 class NewAttn(nn.Module):
   def __init__(self,hidden_size):
+    super(NewAttn,self).__init__()
     self.hidden_size = hidden_size
 
   def forward(self,tree_output, seq_ouput, cur_state):
