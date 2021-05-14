@@ -245,6 +245,8 @@ class NewDecoder(nn.Module):
     You may have to manually guarantee that they have the same dimension outside this function,
     e.g, select the encoder hidden state of the foward/backward pass.
     '''
+    tree_output = tree_output.transpose(0,1)
+    seq_output = seq_output.transpose(0,1)
     print("tree ",tree_output.shape)
     print("seq ",seq_output.shape)
     print("word ",word_indices.shape)
