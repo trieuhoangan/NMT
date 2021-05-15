@@ -160,18 +160,18 @@ class NewAttn(nn.Module):
     super(NewAttn,self).__init__()
     self.hidden_size = hidden_size
 
-  def forward(self,tree_output, seq_ouput, cur_state):
+  def forward(self,tree_output, seq_ouput, cur_state,numNode):
     '''
       tree_outputs has size: (B,N-1,H)
       seq_outputs has size: (B,MAX_LENGTH,H)
       cur_state has size: (B,H)
       output has size: (B,H)
+      numNode have shape (B)
     '''
     ds = None
     batch_size = tree_output.shape[0]
     for i in range(batch_size):
-      numNode = tree_output.shape[0]
-      numLeaf = numNode +1
+      numLeaf = numNode[i] +1
       '''
         at this time, tree_i has size (N-1,H)
         seq_i has size (N,H)
@@ -224,14 +224,16 @@ class NewDecoder(nn.Module):
     self.n_layers = n_layers
     self.dropout_p = dropout_p
     self.out = nn.Linear(hidden_size, output_size)
-    self.LSTM = nn.LSTMCell(input_size,hidden_size)
+    self.LSTM = nn.LSTMCell(hidden_size,hidden_size)
+    
     self.combine_context = nn.Linear(hidden_size*2,hidden_size,bias=True)
-  def forward(self, word_indices,last_hidden,tree_output, seq_output):
+  def forward(self, word_indices,last_hidden,tanh_hidden,tree_output, seq_output,numNode):
     '''
     :param word_input:
         word input for current time step, in shape (B)
     :param last_hidden:
         last hidden stat of the decoder, in shape (layers*direction*B*H) -> (1,1,B,H)
+        tanh_hidden has shape (1,B,H)
     :param encoder_outputs:
         encoder outputs in shape (T,B,H)
         tree encoder in shape ()
@@ -251,7 +253,36 @@ class NewDecoder(nn.Module):
     print("seq ",seq_output.shape)
     print("word ",word_indices.shape)
     print("hidden ",last_hidden.shape)
-    return None
+    lhidden = last_hidden[0]
+    batch = lhidden.shape[1]
+    current_ht = torch.zeros(batch,hidden_size)
+    if self.is_begin_token(word_indices):
+      current_ht = lhidden
+    else:
+      try:
+        word_embedded = self.embedding(word_indices)
+      except:
+        catch_error(word_input)
+
+    current_ht = lhidden[0] + tanh_hidden[0]
+    current_ht = LSTM(word_embedded,(current_ht,torch.zeros(batch,hidden_size)))
+    context = self.attn(tree_output,seq_output,current_ht,numNode)
+    context_vector = torch.cat((current_ht,context),dim=1)
+    current_tanh_hidden = nn.tanh(self.combine_context(context_vector))
+    out_vec = self.out(current_tanh_hidden)
+    prob = F.softmax(out_vec,dim=0)
+    return prob,current_ht,current_tanh_hidden
+
+  def is_begin_token(self,word_indices):
+    sum = 0
+    for index in word_indices:
+      sum+= index
+    if sum == 0:
+      return True
+    else:
+      return False
+
+
   def get_first_hidden(self,tree_last_hidden,seq_last_hidden,c_tree,c_seq):
     '''
       all of input have size(1,H) -> (B,H)
@@ -272,4 +303,9 @@ class NewDecoder(nn.Module):
     first_hiddens = first_hiddens.unsqueeze(0)
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
-  
+  def init_new_hidden(self):
+    return torch.zeros((1,self.hidden_size))
+
+class customLSTM(nn.Module):
+  def __init__(self):
+    super(customLSTM,self).__init__()

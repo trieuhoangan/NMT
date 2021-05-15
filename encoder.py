@@ -38,6 +38,6 @@ class Tree2SeqEncoder(nn.Module):
     output_of_sequence = output
     c_of_sequence = hidden_of_sequence
     # print("finished compute sequence hidden")
-    output_of_tree,c_of_tree = self.TreeLSTMcell(input_forest)
+    numNode,output_of_tree,c_of_tree = self.TreeLSTMcell(input_forest)
  
-    return output_of_tree, output_of_sequence, c_of_tree,c_of_sequence
+    return numNode,output_of_tree, output_of_sequence, c_of_tree,c_of_sequence

@@ -60,9 +60,9 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     target_length = 700
     loss = 0
     
-    encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor,input_forest)
+    numNode,encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor,input_forest)
 
-    
+    tanh_hidden = dec.init_new_hidden()
     word_input = []
     for i in range(batch_size):
       word_input.append(en_model.vocab['<start>'].index)
@@ -78,7 +78,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
         # for bi in range(batch_size)
         for di in range(target_length):
             decoder_output, decoder_hidden, decoder_attention,decoder_tree_attention = decoder(
-                decoder_input, decoder_hidden, encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1))
+                decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode)
           
             loss += criterion(decoder_output, target_tensor[:,di])
       

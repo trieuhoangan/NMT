@@ -36,6 +36,7 @@ class BinaryTreeLSTMCell(nn.Module):
     '''
     input: root node of the tree
       return:
+        numNode is a list of B ele
         output at shape (T,B,H*num_direction) ( in this case num_direction is 1 so shape is T*B*H)
         Tuble (h,c) of shape (num_layer*numdirection,B,H) in this case (1,B,H)
   '''
@@ -43,14 +44,16 @@ class BinaryTreeLSTMCell(nn.Module):
         forest_output = None
         forest_h = None
         forest_c = None
+        numNodes = []
         for tree in input_forest:
-            tree_output, (tree_h, tree_c) = self.tree_traversal(tree)
+            numNode,tree_output, (tree_h, tree_c) = self.tree_traversal(tree)
+            numNodes.append(numNode)
             if tree_output is None:
                 tree_output = torch.zeros(1, self.hidden_size)
                 tree_h = torch.zeros(1, self.hidden_size)
                 tree_c = torch.zeros(1, self.hidden_size)
-            # else:
-            #     # tree_output = self.widen_output(tree_output)
+            else:
+                tree_output = self.widen_output(tree_output)
             if forest_output is None:
                 forest_output = tree_output.unsqueeze(0)
                 forest_h = tree_h.unsqueeze(0)
@@ -61,7 +64,7 @@ class BinaryTreeLSTMCell(nn.Module):
                 forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
                 forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
 
-        return forest_output, (forest_h.transpose(0, 1), forest_c.transpose(0, 1))
+        return numNodes,forest_output, (forest_h.transpose(0, 1), forest_c.transpose(0, 1))
     '''
     param input_left and input_right: 
        left input and right input state of the decoder, in shape (H,1)
@@ -114,10 +117,12 @@ class BinaryTreeLSTMCell(nn.Module):
         '''
 			input is a list as : [(text,[id_left,id_right])] 
 		'''
-        
+        numLeaf = 0
         if len(adj_list) == 0:
-            return torch.zeros(1,self.hidden_size),(torch.zeros(1,self.hidden_size),torch.zeros(1,self.hidden_size))
-       
+            return numLeaf,torch.zeros(1,self.hidden_size),(torch.zeros(1,self.hidden_size),torch.zeros(1,self.hidden_size))
+        for node in adj_list:
+            if node[0]=="":
+                numLeaf += 1
         numNode = len(adj_list)
         for i in range(numNode-1, -1, -1):
             if adj_list[i][0] != "":
@@ -145,4 +150,4 @@ class BinaryTreeLSTMCell(nn.Module):
                     outputs = torch.cat((outputs,adj_list[i][2]),dim=0)
         h = adj_list[0][2]
         c = adj_list[0][3]
-        return outputs,(h,c)
+        return numLeaf,outputs,(h,c)
