@@ -299,7 +299,6 @@ class NewDecoder(nn.Module):
         first_hiddens = hidden_one
       else:
         first_hiddens = torch.cat((first_hiddens,hidden_one),dim=0)
-    # first_hiddens = first_hiddens.transpose(0,1)
     first_hiddens = first_hiddens.unsqueeze(0)
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
@@ -307,5 +306,25 @@ class NewDecoder(nn.Module):
     return torch.zeros((1,self.hidden_size))
 
 class customLSTM(nn.Module):
-  def __init__(self):
+  def __init__(self,input_size: int, hidden_size: int, bias: bool,num_chunks: int):
     super(customLSTM,self).__init__()
+    self.input_size = input_size
+    self.hidden_size = hidden_size
+    self.bias = bias
+    self.weight_inp = Parameter(torch.Tensor(num_chunks*input_size,4*hidden_size))
+    self.weight_hid = Parameter(torch.Tensor(num_chunks*2*hidden_size,4*hidden_size))
+    self.bias_inp = Parameter(torch.Tensor(num_chunks,hidden_size))
+    self.bias_hid = Parameter(torch.Tensor(num_chunks,hidden_size))
+  def forward(self, input: Tensor, hx: Optional[Tuple[Tensor, Tensor]] = None) -> Tuple[Tensor, Tensor]:
+    if hx is None:
+      zeros = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
+      hx = (zeros, zeros)
+    ifgo = F.linear(input, self.weight_inp, self.bias) + F.linear(hx[0],self.weight_hid,self.bias_hid)
+    i,f,g,o = torch.split(ifgo, ifgo.size(1) // 4, dim=1)
+    i = torch.sigmoid(i)
+    f = torch.sigmoid(f)
+    g = torch.tanh(g)
+    o = torch.sigmoid(o)
+    c = f*hx[1] + i*g
+    h = o*torch.tanh(c)
+    return h,c
