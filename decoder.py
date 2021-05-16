@@ -267,8 +267,11 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
     # except:
       #   catch_error(word_input)
-      print("cur ht",current_ht.shape)
+      
       current_ht = lhidden[0] + tanh_hidden[0]
+      print("cur ht",current_ht.shape)
+      print("word_embedded",word_embedded.shape)
+      
       current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,self.hidden_size)))
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
