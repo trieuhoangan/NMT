@@ -265,7 +265,7 @@ class NewDecoder(nn.Module):
     word_embedded = self.embedding(word_indices)
     # except:
       #   catch_error(word_input)
-    current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,hidden_size)))
+    current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,self.hidden_size)))
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = nn.tanh(self.combine_context(context_vector))
