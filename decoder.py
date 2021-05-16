@@ -253,10 +253,6 @@ class NewDecoder(nn.Module):
     '''
     tree_output = tree_output.transpose(0,1)
     seq_output = seq_output.transpose(0,1)
-    print("tree ",tree_output.shape)
-    print("seq ",seq_output.shape)
-    print("word ",word_indices.shape)
-    print("hidden ",last_hidden.shape)
     lhidden = last_hidden[0]
     batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
@@ -267,13 +263,9 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
     # except:
       #   catch_error(word_input)
-      print("tanh_hidden",tanh_hidden.shape)
       current_ht = lhidden + tanh_hidden
-      print("cur ht",current_ht.shape)
-      print("word_embedded",word_embedded.shape)
       # c = torch.zeros(batch,self.hidden_size).to(device)
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
-    print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
