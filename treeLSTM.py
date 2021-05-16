@@ -55,12 +55,12 @@ class BinaryTreeLSTMCell(nn.Module):
             else:
                 tree_output = self.widen_output(tree_output)
             if forest_output is None:
-                forest_output = tree_output.unsqueeze(0)
+                forest_output = tree_output.unsqueeze(0).to(device)
                 forest_h = tree_h.unsqueeze(0)
                 forest_c = tree_c.unsqueeze(0)
             else:
                 forest_output = torch.cat(
-                    (forest_output, tree_output.unsqueeze(0)), dim=0)
+                    (forest_output, tree_output.unsqueeze(0)), dim=0).to(device)
                 forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
                 forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
 
@@ -100,7 +100,6 @@ class BinaryTreeLSTMCell(nn.Module):
 
         c_k_phr = i*ck + fl * c_k_left + fr * c_k_right
         h_k_phr = o*torch.tanh(c_k_phr)
-
 
         return h_k_phr, c_k_phr
 
@@ -145,9 +144,9 @@ class BinaryTreeLSTMCell(nn.Module):
         for i in range(numNode-1, 0, -1):
             if adj_list[i][0] == "":
                 if outputs is None:
-                    outputs = adj_list[i][2]
+                    outputs = adj_list[i][2].to(device)
                 else:
-                    outputs = torch.cat((outputs,adj_list[i][2]),dim=0)
+                    outputs = torch.cat((outputs,adj_list[i][2]),dim=0).to(device)
         h = adj_list[0][2]
         c = adj_list[0][3]
         return numLeaf,outputs,(h,c)
