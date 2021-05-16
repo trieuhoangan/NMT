@@ -211,7 +211,7 @@ class NewAttn(nn.Module):
       attn_weight = torch.dot(cur_state,i_enc_state)
       weight_matrix.append(attn_weight)
     weight_matrix = torch.Tensor(weight_matrix).to(torch.float32).to(device)
-    weight_matrix = torch.softmax(weight_matrix)
+    weight_matrix = torch.softmax(weight_matrix,dim=0)
     return weight_matrix
 
 class NewDecoder(nn.Module):
