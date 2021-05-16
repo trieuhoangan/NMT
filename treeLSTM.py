@@ -47,6 +47,7 @@ class BinaryTreeLSTMCell(nn.Module):
         numNodes = []
         for tree in input_forest:
             numNode,tree_output, (tree_h, tree_c) = self.tree_traversal(tree)
+            print("tree_output ",tree_output.shape)
             numNodes.append(numNode)
             if tree_output is None:
                 tree_output = torch.zeros(1, self.hidden_size)
@@ -59,8 +60,8 @@ class BinaryTreeLSTMCell(nn.Module):
                 forest_h = tree_h.unsqueeze(0)
                 forest_c = tree_c.unsqueeze(0)
             else:
-                print("forest_output ",forest_output.shape)
-                print("tree_output ",tree_output.shape)
+                # print("forest_output ",forest_output.shape)
+                # print("tree_output ",tree_output.shape)
                 forest_output = torch.cat((forest_output, tree_output.unsqueeze(0)), dim=0).to(device)
                 forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
                 forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
