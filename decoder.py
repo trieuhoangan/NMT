@@ -315,7 +315,7 @@ class customLSTM(nn.Module):
     self.weight_hid = Parameter(torch.Tensor(num_chunks*2*hidden_size,4*hidden_size))
     self.bias_inp = Parameter(torch.Tensor(num_chunks,hidden_size))
     self.bias_hid = Parameter(torch.Tensor(num_chunks,hidden_size))
-  def forward(self, input: Tensor, hx: Optional[Tuple[Tensor, Tensor]] = None) -> Tuple[Tensor, Tensor]:
+  def forward(self, input, hx):
     if hx is None:
       zeros = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
       hx = (zeros, zeros)
