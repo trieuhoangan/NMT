@@ -237,7 +237,7 @@ class NewDecoder(nn.Module):
     :param word_input:
         word input for current time step, in shape (B)
     :param last_hidden:
-        last hidden stat of the decoder, in shape (layers*direction*B*H) -> (1,1,B,H)
+        last hidden stat of the decoder, in shape (layers*direction*B*H) -> (1,B,H)
         tanh_hidden has shape (1,B,H)
     :param encoder_outputs:
         encoder outputs in shape (T,B,H)
@@ -305,7 +305,6 @@ class NewDecoder(nn.Module):
         first_hiddens = hidden_one
       else:
         first_hiddens = torch.cat((first_hiddens,hidden_one),dim=0)
-    first_hiddens = first_hiddens.unsqueeze(0)
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
   def init_new_hidden(self):
