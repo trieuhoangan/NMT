@@ -188,7 +188,7 @@ class NewAttn(nn.Module):
         at this time attn_weights has size (2N-1)
         size of enc_out (2N-1,H)
       '''
-      d= torch.zeros(self.hidden_size)
+      d= torch.zeros(self.hidden_size).to(device)
       for j in range(numLeaf+numNode[i]):
         d = d + attn_weights[j]*enc_out[j]
       d = d.unsqueeze(0)
