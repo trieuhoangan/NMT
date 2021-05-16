@@ -168,6 +168,7 @@ class NewAttn(nn.Module):
       output has size: (B,H)
       numNode have shape (B)
     '''
+    print("attn cur_state",cur_state.shape)
     ds = None
     batch_size = tree_output.shape[0]
     for i in range(batch_size):
