@@ -179,7 +179,7 @@ class NewAttn(nn.Module):
       '''
       tree_i = tree_output[i][:numNode[i]]
       seq_i = seq_ouput[i][:numLeaf]
-      state_i = cur_state[i].unsqueeze(0)
+      state_i = cur_state[i]
       enc_out = torch.cat((seq_i,tree_i),dim=0)
       print("attn enc_out",enc_out.shape)
       print("attn state_i",state_i.shape)
