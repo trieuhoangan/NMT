@@ -181,8 +181,8 @@ class NewAttn(nn.Module):
       seq_i = seq_ouput[i][:numLeaf]
       state_i = cur_state[i]
       enc_out = torch.cat((seq_i,tree_i),dim=0)
-      print("attn enc_out",enc_out.shape)
-      print("attn state_i",state_i.shape)
+      # print("attn enc_out",enc_out.shape)
+      # print("attn state_i",state_i.shape)
       attn_weights = self.calculate_attn_weigh(state_i,enc_out)
       '''
         at this time attn_weights has size (2N-1)
