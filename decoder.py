@@ -269,11 +269,10 @@ class NewDecoder(nn.Module):
       #   catch_error(word_input)
       
       current_ht = lhidden + tanh_hidden
-      current_ht = current_ht.to(device)
       print("cur ht",current_ht.shape)
       print("word_embedded",word_embedded.shape)
       c = torch.zeros(batch,self.hidden_size).to(device)
-      current_ht = self.LSTM(word_embedded,(current_ht,c))
+      current_ht = self.LSTM(word_embedded,(current_ht.to(device),c))
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
