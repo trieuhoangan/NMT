@@ -59,8 +59,9 @@ class BinaryTreeLSTMCell(nn.Module):
                 forest_h = tree_h.unsqueeze(0)
                 forest_c = tree_c.unsqueeze(0)
             else:
-                forest_output = torch.cat(
-                    (forest_output, tree_output.unsqueeze(0)), dim=0).to(device)
+                print("forest_output ",forest_output.shape)
+                print("tree_output ",tree_output.shape)
+                forest_output = torch.cat((forest_output, tree_output.unsqueeze(0)), dim=0).to(device)
                 forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
                 forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
 
