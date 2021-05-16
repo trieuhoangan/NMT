@@ -269,6 +269,7 @@ class NewDecoder(nn.Module):
       #   catch_error(word_input)
       
       current_ht = lhidden + tanh_hidden
+      current_ht = current_ht.to(device)
       print("cur ht",current_ht.shape)
       print("word_embedded",word_embedded.shape)
       c = torch.zeros(batch,self.hidden_size).to(device)
