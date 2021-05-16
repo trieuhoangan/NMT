@@ -196,7 +196,7 @@ class NewAttn(nn.Module):
         ds = d
       else:
         ds = torch.cat((ds,d),dim=0)
-    return ds
+    return ds  
   def calculate_attn_weigh(self,cur_state,enc_output ):
     '''
     size of enc_output: (2N-1,H)
@@ -273,7 +273,7 @@ class NewDecoder(nn.Module):
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
-    current_tanh_hidden = nn.tanh(self.combine_context(context_vector))
+    current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
     out_vec = self.out(current_tanh_hidden)
     prob = F.softmax(out_vec,dim=0)
     return prob,current_ht,current_tanh_hidden,context
