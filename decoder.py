@@ -258,7 +258,7 @@ class NewDecoder(nn.Module):
     print("word ",word_indices.shape)
     print("hidden ",last_hidden.shape)
     lhidden = last_hidden[0]
-    batch = lhidden.shape[0]
+    batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
     if self.is_begin_token(word_indices):
       current_ht = lhidden
@@ -272,7 +272,7 @@ class NewDecoder(nn.Module):
       print("cur ht",current_ht.shape)
       print("word_embedded",word_embedded.shape)
 
-      current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,self.hidden_size)))
+      current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros((batch,self.hidden_size))))
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
