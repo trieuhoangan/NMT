@@ -267,7 +267,7 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
     # except:
       #   catch_error(word_input)
-      
+      print("tanh_hidden",tanh_hidden)
       current_ht = lhidden + tanh_hidden
       print("cur ht",current_ht.shape)
       print("word_embedded",word_embedded.shape)
