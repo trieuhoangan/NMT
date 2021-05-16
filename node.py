@@ -141,11 +141,8 @@ class Tree():
                 new_child.father = new_node
                 new_node.addChild(new_child)
             else:
-                try:
-                    node.childList[0].father = new_node
-                    new_node.addChild(node.childList[0])
-                except:
-                    print(node.childList)
+                node.childList[0].father = new_node
+                new_node.addChild(node.childList[0])
             node.childList = []
             node.childNum = 0
         else:
@@ -158,6 +155,8 @@ class Tree():
         return new_node
 
     def create_bin_tree(self, root):
+        if root.childNum == 0:
+            return root
         new_root = self.up_node(root)
         tmp = new_root
         list_cross_node = [new_root.childList[1]]
@@ -279,11 +278,11 @@ def make_forest_from_token_list(token_list,language_model):
 if __name__ == "__main__":
     tokenList = load_simple_token_list_from_file("../test_site.txt")
     nodeList = create_node_list(tokenList)
-    
-    tree = Tree(nodeList[0])
-    root = tree.generate_tree()
-    root = tree.create_bin_tree(root)
-    # root.print_all()
-    print(root.count_node())
-    adjency_list = tree.generate_adjency_list(root)
-    print(adjency_list)
+    for nodes in nodeList:
+        tree = Tree(nodes)
+        root = tree.generate_tree()
+        root = tree.create_bin_tree(root)
+        # root.print_all()
+        print(root.count_node())
+        adjency_list = tree.generate_adjency_list(root)
+        print(adjency_list)
