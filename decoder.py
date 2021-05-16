@@ -203,14 +203,14 @@ class NewAttn(nn.Module):
     size of cur_state: (1,H)
       output is a float number
     '''
-    weight_matrix = None
+    weight_matrix = []
     for i in range(enc_output.shape[0]):
       i_enc_state = enc_output[i]
-      print("calculating attn weigh, cur_state ",cur_state.shape)
-      print("calculating attn weigh, i_enc_state ",i_enc_state.shape)
+      # print("calculating attn weigh, cur_state ",cur_state.shape)
+      # print("calculating attn weigh, i_enc_state ",i_enc_state.shape)
       attn_weight = torch.dot(cur_state,i_enc_state)
       weight_matrix.append(attn_weight)
-    weight_matrix = torch.Tensor(attn_weight).to(torch.float32).to(device)
+    weight_matrix = torch.Tensor(weight_matrix).to(torch.float32).to(device)
     weight_matrix = torch.softmax(weight_matrix)
     return weight_matrix
 
