@@ -271,7 +271,7 @@ class NewDecoder(nn.Module):
     current_tanh_hidden = nn.tanh(self.combine_context(context_vector))
     out_vec = self.out(current_tanh_hidden)
     prob = F.softmax(out_vec,dim=0)
-    return prob,current_ht,current_tanh_hidden
+    return prob,current_ht,current_tanh_hidden,context
 
   def is_begin_token(self,word_indices):
     sum = 0

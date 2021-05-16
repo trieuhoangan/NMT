@@ -77,11 +77,11 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
         # Teacher forcing: Feed the target as the next input
         # for bi in range(batch_size)
         for di in range(target_length):
-            decoder_output, decoder_hidden, decoder_attention,decoder_tree_attention = decoder(
+            decoder_output, decoder_hidden,decoder_tanh_hidden, decoder_attention = decoder(
                 decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode)
           
             loss += criterion(decoder_output, target_tensor[:,di])
-      
+            tanh_hidden = decoder_tanh_hidden
             if check_end(decoder_input,batch_size):
               # print(decoder_input)
               break
