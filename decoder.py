@@ -303,7 +303,7 @@ class NewDecoder(nn.Module):
     first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
   def init_new_hidden(self):
-    return torch.zeros((1,self.hidden_size))
+    return torch.zeros((1,self.hidden_size)).to(device)
 
 class customLSTM(nn.Module):
   def __init__(self,input_size: int, hidden_size: int, bias: bool,num_chunks: int):
