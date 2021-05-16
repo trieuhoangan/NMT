@@ -189,10 +189,8 @@ class NewAttn(nn.Module):
         size of enc_out (2N-1,H)
       '''
       d= torch.zeros(self.hidden_size)
-      for i in range(numLeaf+numNode):
-        print("type attn",type(attn_weights[i]*enc_out[i]))
-        print("type d",type(attn_weights[i]*enc_out[i]))
-        d = d + attn_weights[i]*enc_out[i]
+      for j in range(numLeaf+numNode[i]):
+        d = d + attn_weights[j]*enc_out[j]
       d = d.unsqueeze(0)
       if ds is None:
         ds = d
