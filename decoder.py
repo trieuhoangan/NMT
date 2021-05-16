@@ -205,7 +205,7 @@ class NewAttn(nn.Module):
     '''
     weight_matrix = None
     for i in range(enc_output.shape[0]):
-      i_enc_state = enc_output[i].unsqueeze(0)
+      i_enc_state = enc_output[i]
       print("calculating attn weigh, cur_state ",cur_state.shape)
       print("calculating attn weigh, i_enc_state ",i_enc_state.shape)
       attn_weight = torch.dot(cur_state,i_enc_state)
