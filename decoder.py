@@ -231,7 +231,7 @@ class NewDecoder(nn.Module):
     self.LSTM = nn.LSTMCell(hidden_size,hidden_size)
     
     self.combine_context = nn.Linear(hidden_size*2,hidden_size,bias=True)
-  def forward(self, word_indices,last_hidden,tanh_hidden,tree_output, seq_output,numNode):
+  def forward(self, word_indices,last_hidden,tanh_hidden,tree_output, seq_output,numNode,c):
     '''
     :param word_input:
         word input for current time step, in shape (B)
@@ -267,19 +267,19 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
     # except:
       #   catch_error(word_input)
-      print("tanh_hidden",tanh_hidden)
+      print("tanh_hidden",tanh_hidden.shape)
       current_ht = lhidden + tanh_hidden
       print("cur ht",current_ht.shape)
       print("word_embedded",word_embedded.shape)
-      c = torch.zeros(batch,self.hidden_size).to(device)
-      current_ht = self.LSTM(word_embedded,(current_ht.to(device),c))
+      # c = torch.zeros(batch,self.hidden_size).to(device)
+      current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
     out_vec = self.out(current_tanh_hidden)
     prob = F.softmax(out_vec,dim=0)
-    return prob,current_ht,current_tanh_hidden,context
+    return prob,current_ht,current_tanh_hidden,context,c
 
   def is_begin_token(self,word_indices):
     sum = 0

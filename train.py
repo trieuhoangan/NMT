@@ -72,13 +72,13 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     # print('enc_output shape',encoder_seq_output.shape)
     # use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
     use_teacher_forcing = True
-    
+    c = decoder.init_new_hidden()
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
         # for bi in range(batch_size)
         for di in range(target_length):
-            decoder_output, decoder_hidden,decoder_tanh_hidden, decoder_attention = decoder(
-                decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode)
+            decoder_output, decoder_hidden,decoder_tanh_hidden, decoder_attention,c = decoder(
+                decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode,c)
           
             loss += criterion(decoder_output, target_tensor[:,di])
             tanh_hidden = decoder_tanh_hidden
