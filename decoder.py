@@ -177,10 +177,12 @@ class NewAttn(nn.Module):
         seq_i has size (N,H)
         state_i has size (H)
       '''
-      tree_i = tree_output[i]
+      tree_i = tree_output[i][:numNode[i]]
       seq_i = seq_ouput[i][:numLeaf]
       state_i = cur_state[i].unsqueeze(0)
       enc_out = torch.cat((seq_i,tree_i),dim=0)
+      print("attn enc_out",enc_out.shape)
+      print("attn state_i",state_i.shape)
       attn_weights = self.calculate_attn_weigh(state_i,enc_out)
       '''
         at this time attn_weights has size (2N-1)
@@ -264,8 +266,8 @@ class NewDecoder(nn.Module):
     # except:
       #   catch_error(word_input)
       print("cur ht",current_ht.shape)
+      current_ht = lhidden[0] + tanh_hidden[0]
       current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,self.hidden_size)))
-    current_ht = lhidden[0] + tanh_hidden[0]
     print("cur ht",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
