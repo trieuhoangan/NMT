@@ -50,21 +50,21 @@ class BinaryTreeLSTMCell(nn.Module):
             # print("tree_output ",tree_output.shape)
             numNodes.append(numNode)
             if tree_output is None:
-                tree_output = torch.zeros(1, self.hidden_size)
-                tree_h = torch.zeros(1, self.hidden_size)
-                tree_c = torch.zeros(1, self.hidden_size)
+                tree_output = torch.zeros(1, self.hidden_size).to(device)
+                tree_h = torch.zeros(1, self.hidden_size).to(device)
+                tree_c = torch.zeros(1, self.hidden_size).to(device)
             
             tree_output = self.widen_output(tree_output)
             if forest_output is None:
                 forest_output = tree_output.unsqueeze(0).to(device)
-                forest_h = tree_h.unsqueeze(0)
-                forest_c = tree_c.unsqueeze(0)
+                forest_h = tree_h.unsqueeze(0).to(device)
+                forest_c = tree_c.unsqueeze(0).to(device)
             else:
                 # print("forest_output ",forest_output.shape)
                 # print("tree_output ",tree_output.shape)
                 forest_output = torch.cat((forest_output, tree_output.unsqueeze(0)), dim=0).to(device)
-                forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0)
-                forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0)
+                forest_c = torch.cat((forest_c, tree_c.unsqueeze(0)), dim=0).to(device)
+                forest_h = torch.cat((forest_h, tree_h.unsqueeze(0)), dim=0).to(device)
 
         return numNodes,forest_output, (forest_h.transpose(0, 1), forest_c.transpose(0, 1))
     '''
@@ -148,6 +148,6 @@ class BinaryTreeLSTMCell(nn.Module):
                     outputs = adj_list[i][2].to(device)
                 else:
                     outputs = torch.cat((outputs,adj_list[i][2]),dim=0).to(device)
-        h = adj_list[0][2]
-        c = adj_list[0][3]
+        h = adj_list[0][2].to(device)
+        c = adj_list[0][3].to(device)
         return numLeaf,outputs,(h,c)
