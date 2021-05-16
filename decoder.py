@@ -310,15 +310,15 @@ class customLSTM(nn.Module):
     self.input_size = input_size
     self.hidden_size = hidden_size
     self.bias = bias
-    self.weight_inp = Parameter(torch.Tensor(num_chunks*input_size,4*hidden_size))
-    self.weight_hid = Parameter(torch.Tensor(num_chunks*2*hidden_size,4*hidden_size))
-    self.bias_inp = Parameter(torch.Tensor(num_chunks,hidden_size))
-    self.bias_hid = Parameter(torch.Tensor(num_chunks,hidden_size))
+    self.w_input = nn.Linear(self.input_size,self.hidden_size*4,bias=self.bias).to(device)
+    self.w_hidden = nn.Linear(self.hidden_size*2,self.hidden_size*4,bias=self.bias).to(device)
   def forward(self, input, hx):
     if hx is None:
       zeros = torch.zeros(input.size(0), self.hidden_size, dtype=input.dtype, device=input.device)
       hx = (zeros, zeros)
-    ifgo = F.linear(input, self.weight_inp, self.bias) + F.linear(hx[0],self.weight_hid,self.bias_hid)
+    h = hx[0]
+    c = hx[1]
+    ifg0 = self.w_input(input) + self.w_hidden(h)
     i,f,g,o = torch.split(ifgo, ifgo.size(1) // 4, dim=1)
     i = torch.sigmoid(i)
     f = torch.sigmoid(f)

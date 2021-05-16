@@ -141,8 +141,11 @@ class Tree():
                 new_child.father = new_node
                 new_node.addChild(new_child)
             else:
-                node.childList[0].father = new_node
-                new_node.addChild(node.childList[0])
+                try:
+                    node.childList[0].father = new_node
+                    new_node.addChild(node.childList[0])
+                except:
+                    print(node.childList)
             node.childList = []
             node.childNum = 0
         else:
