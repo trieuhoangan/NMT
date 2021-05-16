@@ -107,8 +107,7 @@ class BinaryTreeLSTMCell(nn.Module):
 
     def widen_output(self, output):
         while output.shape[0] < self.max_length:
-            output = torch.cat((output, torch.zeros(
-                1, self.hidden_size).to(device)), dim=0)
+            output = torch.cat((output.to(device), torch.zeros(1, self.hidden_size).to(device)), dim=0)
         return output
 
     def get_inithidden(self):
