@@ -62,7 +62,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     
     numNode,encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor,input_forest)
 
-    tanh_hidden = dec.init_new_hidden()
+    tanh_hidden = decoder.init_new_hidden()
     word_input = []
     for i in range(batch_size):
       word_input.append(en_model.vocab['<start>'].index)
