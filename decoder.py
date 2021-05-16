@@ -259,12 +259,12 @@ class NewDecoder(nn.Module):
     if self.is_begin_token(word_indices):
       current_ht = lhidden
     else:
-      try:
-        word_embedded = self.embedding(word_indices)
-      except:
-        catch_error(word_input)
-
-    current_ht = lhidden[0] + tanh_hidden[0]
+      current_ht = lhidden[0] + tanh_hidden[0]
+      
+    # try:
+    word_embedded = self.embedding(word_indices)
+    # except:
+      #   catch_error(word_input)
     current_ht = self.LSTM(word_embedded,(current_ht,torch.zeros(batch,hidden_size)))
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
