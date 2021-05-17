@@ -88,10 +88,12 @@ class Tree():
         return nodes
 
     def generate_tree(self):
-
+        
         sorted_list = self.sort_as_level()
         levels = self.get_level_list(sorted_list)
         nodeNum = len(sorted_list)
+        if nodeNum == 0:
+            return None
         for i in range(nodeNum-1, 0, -1):
             current_level = sorted_list[i].level
             level_index = levels.index(current_level)
@@ -155,6 +157,8 @@ class Tree():
         return new_node
 
     def create_bin_tree(self, root):
+        if root is None:
+            return None
         if root.childNum == 0:
             return root
         new_root = self.up_node(root)
@@ -182,6 +186,8 @@ class Tree():
         return new_root
     
     def generate_adjency_list(self, root):
+        if root is None:
+            return ['unk',[]]
         adjency_list = []
         awaiting_list = [root]
         parsed_list = []
@@ -274,15 +280,22 @@ def make_forest_from_token_list(token_list,language_model):
         forest.append(adjency_list)
     return forest
 
+# def save_list_tofile(list,file_path):
 
 if __name__ == "__main__":
-    tokenList = load_simple_token_list_from_file("../test_site.txt")
+    import time
+
+    start = time.time()
+    
+    tokenList = load_simple_token_list_from_file("../tree_train.txt")
     nodeList = create_node_list(tokenList)
     for nodes in nodeList:
         tree = Tree(nodes)
         root = tree.generate_tree()
         root = tree.create_bin_tree(root)
         # root.print_all()
-        print(root.count_node())
+        # print(root.count_node())
         adjency_list = tree.generate_adjency_list(root)
-        print(adjency_list)
+        # print(adjency_list)
+    end = time.time()
+    print(end - start)
