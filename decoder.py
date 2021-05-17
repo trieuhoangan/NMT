@@ -160,7 +160,7 @@ class NewAttn(nn.Module):
     super(NewAttn,self).__init__()
     self.hidden_size = hidden_size
 
-  def forward(self,tree_output, seq_ouput, cur_state,numNode):
+  def second_forward(self,tree_output, seq_ouput, cur_state,numNode):
     '''
       tree_outputs has size: (B,N-1,H)
       seq_outputs has size: (B,MAX_LENGTH,H)
@@ -213,7 +213,44 @@ class NewAttn(nn.Module):
     weight_matrix = torch.Tensor(weight_matrix).to(torch.float32).to(device)
     weight_matrix = torch.softmax(weight_matrix,dim=0)
     return weight_matrix
-
+  def forward(self,tree_output, seq_ouput, cur_state,numNode):
+    maxNumNode = 0
+    for num in numNode:
+      if num > maxNumNode:
+        maxNumNode = num
+    numLeaf = maxNumNode + 1
+    tree_output = tree_output.transpose(0,1).to(device)
+    seq_ouput = seq_ouput.transpose(0,1).to(device)
+    tree_states = tree_output[:maxNumNode]
+    seq_states = seq_states[:numLeaf]
+    '''
+      at this time 
+        tree_states has size (N,B,H)
+        seq_states has size (N +1,B,H)
+    '''
+    states = torch.cat((tree_states,seq_states),dim=0)
+    weight = self.batch_calculate(states,cur_state)
+    weight = weight.unsqueeze(1).to(device)
+    states = states.transpose(0,1).to(device)
+    d = torch.bmm(weight,states)
+    d = d.transpose(0,1)
+    d = d[0].to(device)
+    return d
+  def batch_calculate(self,allstates,cur_state):
+    states = allstates.transpose(0,1).to(device)
+    cur_stt = cur_state.unsqueeze(2).to(device)
+    weight = torch.bmm(states,cur_stt)
+    '''
+      weight have shape (B,2N+1,1)
+    '''
+    weight = weight.transpose(1,2)
+    weight = weight.transpose(0,1)
+    weight = weight[0].to(device)
+    weight = torch.softmax(weight,dim=1)
+    '''
+      weight have shape(B,2N+1)
+    '''
+    return weight
 class NewDecoder(nn.Module):
   def __init__(self,input_size,hidden_size,max_length,embedding_path,embed_size,output_size,n_layers=1,dropout_p=0.1):
     super(NewDecoder,self).__init__()
