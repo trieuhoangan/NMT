@@ -60,7 +60,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     target_length = 700
     loss = 0
     
-    numNode,encoder_tree_output,encoder_seq_output,encoder_tree_hc,encoder_tree_output = encoder(input_tensor,input_forest)
+    numNode,encoder_tree_output,encoder_seq_output,encoder_tree_hc,encoder_seq_hc = encoder(input_tensor,input_forest)
     print("encoder_seq_output",encoder_seq_output.shape)
     maxNode = 0
     for num in numNode:
