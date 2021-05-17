@@ -222,7 +222,7 @@ class NewAttn(nn.Module):
     tree_output = tree_output.transpose(0,1).to(device)
     seq_ouput = seq_ouput.transpose(0,1).to(device)
     tree_states = tree_output[:maxNumNode]
-    seq_states = seq_states[:numLeaf]
+    seq_states = seq_ouput[:numLeaf]
     '''
       at this time 
         tree_states has size (N,B,H)
