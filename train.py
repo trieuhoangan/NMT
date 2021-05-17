@@ -61,13 +61,17 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     loss = 0
     
     numNode,encoder_seq_output,encoder_tree_output,encoder_seq_hc,encoder_tree_hc = encoder(input_tensor,input_forest)
-
+    maxNode = 0
+    for num in numNode:
+      if num > maxNode:
+        maxNode = num
+    maxNode += 1
     tanh_hidden = decoder.init_new_hidden()
     word_input = []
     for i in range(batch_size):
       word_input.append(en_model.vocab['<start>'].index)
     decoder_input = torch.tensor(word_input, device=device)
-    decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],encoder_seq_hc[0],encoder_tree_hc[1],encoder_seq_hc[1])
+    decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],encoder_tree_output[maxNode],encoder_tree_hc[1],encoder_seq_hc[1])
     # print('first hidden shape',decoder_hidden.shape)
     # print('enc_output shape',encoder_seq_output.shape)
     # use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -194,7 +198,7 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
     target_sent = preprocessing_without_start(target_sentences[:132000])
     lst = load_simple_token_list_from_file(input_forest_path)
 
-    batch_size = 64
+    batch_size = 16
     max_length = 870
     loss = trainIters(enc, dec,input_sent,lst[:132000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     print('finish epoch {} - loss {}'.format(epoch+1,loss))
