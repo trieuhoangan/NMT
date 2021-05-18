@@ -14,14 +14,14 @@ from decoder import Decoder,Attn,NewDecoder
 from train import trainEpoch,trainIters,train
 import gensim
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+input_size = 100
+hidden_size = 100
+p_dropout = 0.01
+max_length = 870
+path_to_file_vi = 'models/language_models/vi_model.bin'
+path_to_file_en = 'models/language_models/en_model.bin'
 def normal_train():
-    input_size = 100
-    hidden_size = 100
-    p_dropout = 0.01
-    max_length = 870
-    path_to_file_vi = 'models/language_models/vi_model.bin'
-    path_to_file_en = 'models/language_models/en_model.bin'
+    
     en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
     vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
 
@@ -37,10 +37,6 @@ def normal_train():
 def train_from_checkpoint():
     path = 'models/checkpoint/checkpoint.pt'
     checkpoint = torch.load(path)
-    input_size = 100
-    hidden_size = 100
-    p_dropout = 0.01
-    max_length = 870
     enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_file_vi).to(device)
     dec = Decoder(input_size,hidden_size,max_length,path_to_file_en,hidden_size,len(en_model.vocab)).to(device)
     enc.load_state_dict(checkpoint['enc_state_dict'])
