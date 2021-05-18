@@ -158,7 +158,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             plot_loss_avg = plot_loss_total / plot_every
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
-        if iter>0 and iter % 5000 == 0:
+        if iter>0 and iter % 400 == 0:
           enc_path = '{}/checkpoint.pt'.format(save_path)
           torch.save({
             'epoch':epoch,
@@ -193,13 +193,13 @@ def trainEpoch(enc,dec,input_data_path,target_data_path,input_forest_path,num_ep
     input_sentences.extend(raw_input_text.split('\n'))
     target_sentences.extend(raw_target_text.split('\n'))
 
-    input_sent = preprocess_batch(input_sentences[:132000])
-    target_sent = preprocessing_without_start(target_sentences[:132000])
+    input_sent = preprocess_batch(input_sentences[:130000])
+    target_sent = preprocessing_without_start(target_sentences[:130000])
     lst = load_simple_token_list_from_file(input_forest_path)
 
     batch_size = 16
     max_length = 870
-    loss = trainIters(enc, dec,input_sent,lst[:132000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
+    loss = trainIters(enc, dec,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     print('finish epoch {} - loss {}'.format(epoch+1,loss))
     # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
     torch.save({
