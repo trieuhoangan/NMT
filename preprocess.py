@@ -153,5 +153,7 @@ def create_forest(list_token_list,embedding_model):
 def get_k_elements(source_list,batch_size,start_point):
   result = []
   for i in range(0,batch_size):
+    if start_point+i >= len(source_list):
+      return result
     result.append(source_list[start_point+i])
   return result
