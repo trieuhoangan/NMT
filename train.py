@@ -158,7 +158,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             plot_loss_avg = plot_loss_total / plot_every
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
-        if iter>0 and iter % 400 == 0:
+        if iter>0 and iter % 2000 == 0:
           enc_path = '{}/checkpoint.pt'.format(save_path)
           torch.save({
             'epoch':epoch,

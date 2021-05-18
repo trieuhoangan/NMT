@@ -48,4 +48,4 @@ if __name__=='__main__':
     vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
     enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_file_vi).to(device)
     dec = NewDecoder(input_size,hidden_size,max_length,path_to_file_en,hidden_size,len(en_model.vocab)).to(device)
-    normal_train(enc,dec)
+    train_from_checkpoint(enc,dec)
