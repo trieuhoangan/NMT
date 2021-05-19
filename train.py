@@ -149,7 +149,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
                      decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size)
         print_loss_total += loss
         plot_loss_total += loss
-
+        totalLoss += loss
         if iter % print_every == 0:
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
@@ -157,10 +157,10 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
                                          iter, iter / n_iters * 100, print_loss_avg))
 
         if iter % plot_every == 0:
-            plot_loss_avg = plot_loss_total / plot_every
+            plot_loss_avg = plot_loss_total / (plot_every*batch_size)
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
-        if iter>0 and iter % 1000 == 0:
+        if iter>0 and iter % 800 == 0:
           enc_path = '{}/checkpoint.pt'.format(save_path)
           torch.save({
             'epoch':epoch,
@@ -172,7 +172,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             'loss': loss,
             }, enc_path)
     # showPlot(plot_losses)
-    return print_loss_total
+
+    return totalLoss/total_exp
 
 
 def trainEpoch(encoder,dec,args,last_epoch,last_iter,save_path,learning_rate=0.02):
@@ -272,5 +273,5 @@ def evaluate(encoder,decoder,args,input_model,target_model):
         break
     loss = loss/target_length
     totalLoss += loss
-  print("validation step: Loss :",totalLoss)
+  print("validation step: Loss : %.5f"%(totalLoss/numExample))
     
