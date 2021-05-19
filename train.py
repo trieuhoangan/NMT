@@ -220,7 +220,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
             'loss': loss,
             }, epoch_path)
     last_iter = 0
-    evaluate(encoder,decoder,args,vi_model,en_model)
+    # evaluate(encoder,decoder,args,vi_model,en_model)
 def evaluate(encoder,decoder,args,input_model,target_model):
   input_valid_path = args['input_valid_path']
   target_valid_path = args['target_valid_path']
