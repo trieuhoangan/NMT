@@ -20,7 +20,7 @@ def normal_train(enc,dec,args):
     trainEpoch(enc,dec,args,0,0,save_path)
 def train_from_checkpoint(enc,dec,args):
     path = 'models/checkpoint/checkpoint.pt'
-    checkpoint = torch.jit.load(path)
+    checkpoint = torch.load(path)
     enc.load_state_dict(checkpoint['enc_state_dict'])
     dec.load_state_dict(checkpoint['dec_state_dict'])
     last_epoch = checkpoint['epoch']
