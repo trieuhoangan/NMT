@@ -237,7 +237,7 @@ def evaluate(encoder,decoder,args,input_model,target_model):
 
   lst = load_simple_token_list_from_file(valid_forest_path)
   
-  numExample = len(input_forest)
+  numExample = len(lst)
   totalLoss = 0
   criterion = nn.NLLLoss()
   batch_size = 16
