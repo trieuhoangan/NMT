@@ -176,7 +176,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     return totalLoss/total_exp
 
 
-def trainEpoch(encoder,dec,args,last_epoch,last_iter,save_path,learning_rate=0.02):
+def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate=0.02):
   import os
   encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
   decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
