@@ -283,6 +283,6 @@ def evaluate(encoder,decoder,args,input_model,target_model):
     loss = loss/target_length
     totalLoss += loss
     torch.cuda.empty_cache()
-  print("validation step: Loss : %.5f"%(totalLoss))
+  print("validation step: Loss : %.4f"%(totalLoss))
   torch.cuda.empty_cache()
     
