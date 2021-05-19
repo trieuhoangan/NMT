@@ -134,7 +134,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     total_exp = len(input_sentence)
     n_iters = int(total_exp/batch_size)
     checkpoint = last_iter * batch_size
-
+    totalLoss = 0
     for iter in range(last_iter+1, n_iters + 1):
         # print(iter)
         input_batch = get_k_elements(source_list=input_sentence,batch_size=batch_size,start_point=checkpoint)
