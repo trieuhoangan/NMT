@@ -40,7 +40,7 @@ if __name__=='__main__':
     target_data_path = 'data/train.en'
     input_forest_path = 'data/tree_train.txt'
     input_valid_path = 'data/valid.vi'
-    target_data_path =  'data/valid.en'
+    target_valid_path =  'data/valid.en'
     valid_forest_path = 'data/valid_tree.txt'
     epoch = 15
     en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
