@@ -298,11 +298,7 @@ class NewDecoder(nn.Module):
     else:
 
       word_embedded = self.embedding(word_indices)
-      print("current_ht",current_ht.shape)
-      print("tanh_hidden",tanh_hidden.shape)
-
       current_ht = lhidden + tanh_hidden
-      print("current_ht",current_ht.shape)
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
 
     context = self.attn(tree_output,seq_output,current_ht,numNode)

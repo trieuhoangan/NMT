@@ -267,13 +267,6 @@ def evaluate(encoder,decoder,args,input_model,target_model):
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
     use_teacher_forcing = True
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
-    print("decoder_hidden",decoder_hidden.shape)
-    print("encoder_tree_output",encoder_tree_output.shape)
-    print("encoder_seq_output",encoder_seq_output.shape)
-    print("encoder_tree_h",encoder_tree_hc[0].shape)
-    print("encoder_seq_h",encoder_seq_hc[0].shape)
-    print("encoder_tree_c",encoder_tree_hc[1].shape)
-    print("encoder_seq_c",encoder_tree_hc[1].shape)
     for di in range(target_length):
       decoder_output, decoder_hidden,decoder_tanh_hidden, decoder_attention,c = decoder(
           decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode,c)
@@ -281,6 +274,7 @@ def evaluate(encoder,decoder,args,input_model,target_model):
         decoder is in shape (B,H)
         mean first word of each sentence.
       '''
+      tanh_hidden = decoder_tanh_hidden
       loss += criterion(decoder_output, target_tensor[:,di])
       topv, topi = decoder_output.topk(1)
       decoder_input = topi.squeeze().detach()  # detach from history as input
