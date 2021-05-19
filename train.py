@@ -112,7 +112,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     encoder_optimizer.step()
     decoder_optimizer.step()
 
-    return loss.item() / (target_length*batch_size)
+    return loss.item() / target_length
 
 
 '''
@@ -220,7 +220,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
             'loss': loss,
             }, epoch_path)
     last_iter = 0
-  evaluate(encoder,decoder,args,vi_model,en_model)
+    evaluate(encoder,decoder,args,vi_model,en_model)
 def evaluate(encoder,decoder,args,input_model,target_model):
   input_valid_path = args['input_valid_path']
   target_valid_path = args['target_valid_path']
@@ -241,18 +241,24 @@ def evaluate(encoder,decoder,args,input_model,target_model):
   numExample = len(input_forest)
   totalLoss = 0
   criterion = nn.NLLLoss()
-  for i in range(0,numExample):
-    input_batch = [input_tensor[i]]
-    target_batch = [target_tensor[i]]
-    forest_batch = [input_forest[i]]
+  batch_size = 16
+  limit = int(numExample/batch_size)
+  for i in range(0,limit):
+    input_batch = get_k_elements(input_tensor,batch_size,i*batch_size)
+    target_batch = get_k_elements(target_tensor,batch_size,i*batch_size)
+    forest_batch = get_k_elements(input_forest,batch_size,i*batch_size)
     target_length = 700
     loss = 0
     numNode,encoder_tree_output,encoder_seq_output,encoder_tree_hc,encoder_seq_hc = encoder(input_batch,forest_batch)
-    maxNode = numNode[0]
+    maxNode = 0
+    for num in numNode:
+      if num > maxNode:
+        maxNode = num
     maxNode += 1
     tanh_hidden = decoder.init_new_hidden()
     word_input = []
-    word_input.append(target_model.vocab['<start>'].index)
+    for j in range(batch_size):
+      word_input.append(target_model.vocab['<start>'].index)
     decoder_input = torch.tensor(word_input, device=device)
     last_seq_hidden = encoder_seq_output[:,maxNode].unsqueeze(0)
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
@@ -273,5 +279,5 @@ def evaluate(encoder,decoder,args,input_model,target_model):
         break
     loss = loss/target_length
     totalLoss += loss
-  print("validation step: Loss : %.5f"%(totalLoss/numExample))
+  print("validation step: Loss : %.5f"%(totalLoss))
     
