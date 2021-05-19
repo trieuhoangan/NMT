@@ -17,7 +17,7 @@ path_to_file_vi = 'models/language_models/vi_model.bin'
 path_to_file_en = 'models/language_models/en_model.bin'
 en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
 vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
-
+MAX_LENGTH = 870
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -236,21 +236,24 @@ def evaluate(encoder,decoder,args,input_model,target_model):
   target_sent = preprocessing_without_start(target_sentences)
 
   lst = load_simple_token_list_from_file(valid_forest_path)
-  input_tensor,in_lengths = tensorFromSentence(model=input_model,sentences=input_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
-  target_tensor,tar_lengths = tensorFromSentence(model=target_model,sentences=target_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
-  input_forest = make_forest_from_token_list(forest_batch,input_model)
+  
   numExample = len(input_forest)
   totalLoss = 0
   criterion = nn.NLLLoss()
   batch_size = 16
   limit = int(numExample/batch_size)
   for i in range(0,limit):
-    input_batch = get_k_elements(input_tensor,batch_size,i*batch_size)
-    target_batch = get_k_elements(target_tensor,batch_size,i*batch_size)
-    forest_batch = get_k_elements(input_forest,batch_size,i*batch_size)
+    input_batch = get_k_elements(input_sent,batch_size,i*batch_size)
+    target_batch = get_k_elements(target_sent,batch_size,i*batch_size)
+    forest_batch = get_k_elements(lst,batch_size,i*batch_size)
+    
+    input_tensor,in_lengths = tensorFromSentence(model=input_model,sentences=input_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
+    target_tensor,tar_lengths = tensorFromSentence(model=target_model,sentences=target_batch,MAX_SEQUENCE_LENGTH=MAX_LENGTH)
+    input_forest = make_forest_from_token_list(forest_batch,input_model)
+    
     target_length = 700
     loss = 0
-    numNode,encoder_tree_output,encoder_seq_output,encoder_tree_hc,encoder_seq_hc = encoder(input_batch,forest_batch)
+    numNode,encoder_tree_output,encoder_seq_output,encoder_tree_hc,encoder_seq_hc = encoder(input_tensor,input_forest)
     maxNode = 0
     for num in numNode:
       if num > maxNode:
