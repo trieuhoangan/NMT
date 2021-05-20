@@ -13,6 +13,7 @@ import encoder
 import decoder
 import time
 import gensim
+import random
 path_to_file_vi = 'models/language_models/vi_model.bin'
 path_to_file_en = 'models/language_models/en_model.bin'
 en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
@@ -73,8 +74,8 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     decoder_input = torch.tensor(word_input, device=device)
     last_seq_hidden = encoder_seq_output[:,maxNode].unsqueeze(0)
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
-    # use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
-    use_teacher_forcing = True
+    use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+    # use_teacher_forcing = True
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
