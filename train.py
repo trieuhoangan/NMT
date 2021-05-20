@@ -100,10 +100,10 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               decoder is in shape (B,H)
               mean first word of each sentence.
             '''
+            tanh_hidden = decoder_tanh_hidden
             loss += criterion(decoder_output, target_tensor[:,di])
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
-            print(decoder_input)
             if check_end(decoder_input,batch_size):
               target_length = di
               break
