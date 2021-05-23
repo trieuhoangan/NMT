@@ -219,23 +219,26 @@ class NewAttn(nn.Module):
       if num > maxNumNode:
         maxNumNode = num
     numLeaf = maxNumNode + 1
-    tree_output = tree_output.transpose(0,1).to(device)
-    seq_ouput = seq_ouput.transpose(0,1).to(device)
-    tree_states = tree_output[:maxNumNode]
-    seq_states = seq_ouput[:numLeaf]
-    '''
-      at this time 
-        tree_states has size (N,B,H)
-        seq_states has size (N +1,B,H)
-    '''
-    states = torch.cat((tree_states,seq_states),dim=0)
-    weight = self.batch_calculate(states,cur_state)
-    weight = weight.unsqueeze(1).to(device)
-    states = states.transpose(0,1).to(device)
-    d = torch.bmm(weight,states)
-    d = d.transpose(0,1)
-    d = d[0].to(device)
-    return d
+    try:
+      tree_output = tree_output.transpose(0,1).to(device)
+      seq_ouput = seq_ouput.transpose(0,1).to(device)
+      tree_states = tree_output[:maxNumNode]
+      seq_states = seq_ouput[:numLeaf]
+      '''
+        at this time 
+          tree_states has size (N,B,H)
+          seq_states has size (N +1,B,H)
+      '''
+      states = torch.cat((tree_states,seq_states),dim=0)
+      weight = self.batch_calculate(states,cur_state)
+      weight = weight.unsqueeze(1).to(device)
+      states = states.transpose(0,1).to(device)
+      d = torch.bmm(weight,states)
+      d = d.transpose(0,1)
+      d = d[0].to(device)
+      return d
+    except:
+      print("cur_state",cur_state.shape)
   def batch_calculate(self,allstates,cur_state):
     states = allstates.transpose(0,1).to(device)
     cur_stt = cur_state.unsqueeze(2).to(device)

@@ -42,7 +42,7 @@ if __name__=='__main__':
     input_valid_path = 'data/valid.vi'
     target_valid_path =  'data/valid.en'
     valid_forest_path = 'data/tree_valid.txt'
-    epoch = 15
+    epoch = 40
     en_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_en,binary=True)
     vi_model = gensim.models.KeyedVectors.load_word2vec_format(path_to_file_vi,binary=True)
     enc = Tree2SeqEncoder(input_size,hidden_size,max_length,p_dropout,path_to_file_vi).to(device)
