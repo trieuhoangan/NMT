@@ -175,7 +175,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             }, enc_path)
     # showPlot(plot_losses)
 
-    return totalLoss/total_exp
+    return totalLoss/n_iters
 
 
 def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate=0.015):
