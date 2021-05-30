@@ -180,8 +180,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
 
 def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate=0.015):
   import os
-  encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
-  decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
+  encoder_optimizer = optim.RMSprop(encoder.parameters(), lr=learning_rate)
+  decoder_optimizer = optim.RMSprop(decoder.parameters(), lr=learning_rate)
   input_data_path = args['input_data_path']
   target_data_path = args['target_data_path']
   input_forest_path = args['input_forest_path']
