@@ -116,7 +116,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
       encoder_optimizer.step()
       decoder_optimizer.step()
 
-    return loss.item()
+    return loss.item()/target_length
 
 
 '''
