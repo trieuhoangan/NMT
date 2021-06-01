@@ -52,7 +52,7 @@ def check_end(lst,batch):
     shape of target and input are (B,T)
 
 '''
-def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size):
+def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size,isTrain):
     # encoder_hidden = encoder.initHidden()
 
     encoder_optimizer.zero_grad()
@@ -75,6 +75,8 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     last_seq_hidden = encoder_seq_output[:,maxNode].unsqueeze(0)
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+    if isTrain == False:
+      use_teacher_forcing = False
     # use_teacher_forcing = True
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
     if use_teacher_forcing:
@@ -109,10 +111,10 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               break
             # if decoder_input.item() == EOS_token:
             #     break
-
-    loss.backward()
-    encoder_optimizer.step()
-    decoder_optimizer.step()
+    if isTrain:
+      loss.backward()
+      encoder_optimizer.step()
+      decoder_optimizer.step()
 
     return loss.item()
 
@@ -123,14 +125,14 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
   input_forest is all trees that is parsed from sentences inside of the dataset
   target_sentence is all sentence that is translated from the other side
 '''
-def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,batch_size,input_model,target_model, MAX_LENGTH,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,print_every=400, plot_every=400):
+def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,batch_size,input_model,target_model, MAX_LENGTH,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,print_every=400, plot_every=400,isTrain = True):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
     plot_loss_total = 0  # Reset every plot_every
 
-    # criterion = nn.CrossEntropyLoss()
-    criterion = nn.NLLLoss()
+    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.NLLLoss()
     # criterion = nn.MSELoss()
 
     total_exp = len(input_sentence)
@@ -148,7 +150,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
         
         input_forest = make_forest_from_token_list(forest_batch,input_model)
         loss = train(input_tensor, target_tensor,input_forest ,encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size)
+                     decoder, encoder_optimizer, decoder_optimizer, criterion,MAX_LENGTH,batch_size,isTrain)
         print_loss_total += loss
         plot_loss_total += loss
         totalLoss += loss
@@ -210,7 +212,9 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     batch_size = 16
     max_length = 870
     loss = trainIters(encoder, decoder,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
-    print('finish epoch {} - loss {}'.format(epoch+1,loss))
+    eval_input,eval_target,eval_lst = get_eval_data(args)
+    eval_loss = trainIters(encoder,decoder,eval_input,eval_lst,eval_target,batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,isTrain=False)
+    print('finish epoch {} - loss {}'.format(epoch+1,eval_loss))
     # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
     torch.save({
             'epoch': epoch,
@@ -223,7 +227,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
             }, epoch_path)
     last_iter = 0
     # evaluate(encoder,decoder,args,vi_model,en_model)
-def evaluate(encoder,decoder,args,input_model,target_model):
+def get_eval_data(args):
   input_valid_path = args['input_valid_path']
   target_valid_path = args['target_valid_path']
   valid_forest_path = args['valid_forest_path']
@@ -236,11 +240,14 @@ def evaluate(encoder,decoder,args,input_model,target_model):
   input_sent = preprocess_batch(input_sentences)
   target_sent = preprocessing_without_start(target_sentences)
   lst = load_simple_token_list_from_file(valid_forest_path)
+  return input_sent,target_sent,lst
+
+def evaluate(encoder,decoder,args,input_model,target_model):
+  
   numExample = len(lst)
   totalLoss = 0
   criterion = nn.NLLLoss()
-  batch_size = 16
-  limit = int(numExample/batch_size)
+  
   for i in range(0,limit):
     input_batch = get_k_elements(input_sent,batch_size,i*batch_size)
     target_batch = get_k_elements(target_sent,batch_size,i*batch_size)
