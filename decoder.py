@@ -314,6 +314,7 @@ class NewDecoder(nn.Module):
     except:
       print("context",context)
       print("current_ht",current_ht)
+      print("lhidden",lhidden)
   def is_begin_token(self,word_indices):
     sum = 0
     for index in word_indices:
