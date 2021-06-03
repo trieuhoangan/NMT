@@ -105,8 +105,8 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
             tanh_hidden = decoder_tanh_hidden
             
             loss += criterion(decoder_output, target_tensor[:,di])
-            print("no force teaching used ",target_tensor[:,di])
-            print("no force teaching used ",topi)
+            # print("no force teaching used ",target_tensor[:,di])
+            
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
             if check_end(decoder_input,batch_size):
@@ -114,6 +114,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               break
             # if decoder_input.item() == EOS_token:
             #     break
+    print("target_length",target_length)
     if isTrain:
       loss.backward()
       encoder_optimizer.step()
