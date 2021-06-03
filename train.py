@@ -77,7 +77,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
     if isTrain == False:
       use_teacher_forcing = False
-    # use_teacher_forcing = True
+    use_teacher_forcing = False
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
