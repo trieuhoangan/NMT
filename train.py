@@ -78,7 +78,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     if isTrain == False:
       use_teacher_forcing = False
     # use_teacher_forcing = True
-    use_teacher_forcing = False
+
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
@@ -107,7 +107,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
             loss += criterion(decoder_output, target_tensor[:,di])
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
-            print("decoder_input",decoder_input)
+      
             if check_end(decoder_input,batch_size):
               target_length = di
               break
