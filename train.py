@@ -103,8 +103,10 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               mean first word of each sentence.
             '''
             tanh_hidden = decoder_tanh_hidden
-            print("no force teaching used ",decoder_output)
+            
             loss += criterion(decoder_output, target_tensor[:,di])
+            print("no force teaching used ",target_tensor[:,di])
+            print("no force teaching used ",topi)
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
             if check_end(decoder_input,batch_size):
