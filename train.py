@@ -77,7 +77,6 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
     if isTrain == False:
       use_teacher_forcing = False
-    use_teacher_forcing = False
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
@@ -146,6 +145,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     totalLoss = 0
     for iter in range(last_iter+1, n_iters + 1):
         # print(iter)
+        
         input_batch = get_k_elements(source_list=input_sentence,batch_size=batch_size,start_point=checkpoint)
         forest_batch = get_k_elements(source_list=input_tokenlist,batch_size=batch_size,start_point=checkpoint)
         target_batch = get_k_elements(source_list=target_sentence,batch_size=batch_size,start_point=checkpoint)
@@ -164,6 +164,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             print_loss_total = 0
             print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
                                          iter, iter / n_iters * 100, print_loss_avg))
+            print("encoder",encoder.parameters())
+            print("decoder",decoder.parameters())
 
         if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / (plot_every*batch_size)
