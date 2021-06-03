@@ -87,7 +87,6 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
                 decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode,c)
           
             loss += criterion(decoder_output, target_tensor[:,di])
-            print("use_teacher_forcing {} {}".format(isTrain,use_teacher_forcing),criterion(decoder_output, target_tensor[:,di]))
             tanh_hidden = decoder_tanh_hidden
             if check_end(decoder_input,batch_size):
               target_length = di
@@ -104,6 +103,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               mean first word of each sentence.
             '''
             tanh_hidden = decoder_tanh_hidden
+            print("no force teaching used ",decoder_output)
             loss += criterion(decoder_output, target_tensor[:,di])
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
