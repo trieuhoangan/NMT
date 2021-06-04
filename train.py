@@ -54,7 +54,8 @@ def check_end(lst,batch):
 '''
 def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size,isTrain):
     # encoder_hidden = encoder.initHidden()
-
+    for p in encoder.parameters():
+      print(p)
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
 
@@ -162,8 +163,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             print_loss_total = 0
             print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
                                          iter, iter / n_iters * 100, print_loss_avg))
-            print("encoder",encoder.parameters())
-            print("decoder",decoder.parameters())
+            # print("encoder",encoder.parameters())
+            # print("decoder",decoder.parameters())
 
         if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / (plot_every*batch_size)
