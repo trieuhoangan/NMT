@@ -54,8 +54,6 @@ def check_end(lst,batch):
 '''
 def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size,isTrain):
     # encoder_hidden = encoder.initHidden()
-    for p in encoder.parameters():
-      print(p)
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
 
