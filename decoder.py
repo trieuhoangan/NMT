@@ -238,7 +238,7 @@ class NewAttn(nn.Module):
     return d
   def batch_calculate(self,allstates,cur_state):
     states = allstates.transpose(0,1).to(device)
-    print("cur_state ",cur_state.shape)
+    # print("cur_state ",cur_state.shape)
     cur_stt = cur_state.unsqueeze(2).to(device)
     weight = torch.bmm(states,cur_stt)
     '''
