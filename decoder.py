@@ -214,6 +214,7 @@ class NewAttn(nn.Module):
     weight_matrix = torch.softmax(weight_matrix,dim=0)
     return weight_matrix
   def forward(self,tree_output, seq_ouput, cur_state,numNode):
+    print("cur_state ",cur_state.shape)
     maxNumNode = 0
     for num in numNode:
       if num > maxNumNode:
@@ -238,7 +239,7 @@ class NewAttn(nn.Module):
     return d
   def batch_calculate(self,allstates,cur_state):
     states = allstates.transpose(0,1).to(device)
-    # print("cur_state ",cur_state.shape)
+    
     cur_stt = cur_state.unsqueeze(2).to(device)
     weight = torch.bmm(states,cur_stt)
     '''

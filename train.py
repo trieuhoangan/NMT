@@ -91,7 +91,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               target_length = di
               break
             decoder_input = target_tensor[:,di]  # Teacher forcing
-            print("decoder_input ",decoder_input)
+            # print("decoder_input ",decoder_input)
     else:
         # Without teacher forcing: use its own predictions as the next input
         for di in range(target_length):
@@ -108,7 +108,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
             
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
-            print("decoder_input ",decoder_input)
+            # print("decoder_input ",decoder_input)
             if check_end(decoder_input,batch_size):
               target_length = di
               break
