@@ -303,7 +303,6 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
       current_ht = lhidden + tanh_hidden
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
-    print("current_ht ",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
