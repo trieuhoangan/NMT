@@ -40,6 +40,7 @@ def timeSince(since, percent):
     rs = es - s
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 def check_end(lst,batch):
+  print("lst ",lst)
   sum = 0 
   for i in range(batch):
     sum += int(lst[i])
