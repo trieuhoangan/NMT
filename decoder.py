@@ -302,11 +302,11 @@ class NewDecoder(nn.Module):
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
 
     context = self.attn(tree_output,seq_output,current_ht,numNode)
-      context_vector = torch.cat((current_ht,context),dim=1)
-      current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
-      out_vec = self.out(current_tanh_hidden)
-      prob = F.softmax(out_vec,dim=0)
-      return prob,current_ht,current_tanh_hidden,context,c
+    context_vector = torch.cat((current_ht,context),dim=1)
+    current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
+    out_vec = self.out(current_tanh_hidden)
+    prob = F.softmax(out_vec,dim=0)
+    return prob,current_ht,current_tanh_hidden,context,c
   def is_begin_token(self,word_indices):
     sum = 0
     for index in word_indices:
