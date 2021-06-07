@@ -217,7 +217,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     target_sent = preprocessing_without_start(target_sentences[:130000])
     lst = load_simple_token_list_from_file(input_forest_path)
     
-    batch_size = 2
+    batch_size = 16
     max_length = 870
     loss = trainIters(encoder, decoder,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     eval_input,eval_target,eval_lst = get_eval_data(args)
