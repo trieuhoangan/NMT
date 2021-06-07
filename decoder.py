@@ -294,7 +294,8 @@ class NewDecoder(nn.Module):
     tree_output = tree_output.transpose(0,1)
     seq_output = seq_output.transpose(0,1)
     lhidden = last_hidden[0]
-    print("last_hidden ",last_hidden.shape)
+    print("last_hidden ",lhidden.shape)
+    print("tanh_hidden ",tanh_hidden.shape)
     batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
     if self.is_begin_token(word_indices):
