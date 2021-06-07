@@ -290,12 +290,13 @@ class NewDecoder(nn.Module):
     You may have to manually guarantee that they have the same dimension outside this function,
     e.g, select the encoder hidden state of the foward/backward pass.
     '''
+    
     tree_output = tree_output.transpose(0,1)
     seq_output = seq_output.transpose(0,1)
     lhidden = last_hidden[0]
+    print("last_hidden ",last_hidden.shape)
     batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
-    print("current_ht ",current_ht.shape)
     if self.is_begin_token(word_indices):
       current_ht = lhidden
       print(" go into if current_ht ",current_ht.shape)
@@ -303,7 +304,6 @@ class NewDecoder(nn.Module):
       word_embedded = self.embedding(word_indices)
       current_ht = lhidden + tanh_hidden
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
-      print(" go into else current_ht ",current_ht.shape)
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
