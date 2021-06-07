@@ -127,6 +127,8 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
   target_sentence is all sentence that is translated from the other side
 '''
 def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,batch_size,input_model,target_model, MAX_LENGTH,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,print_every=400, plot_every=400,isTrain = True):
+    print_every = (print_every * 16) / batch_size
+    plot_every = (plot_every * 16) / batch_size
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -186,8 +188,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
 
 def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate=0.015):
   import os
-  encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-  decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate)
+  encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
+  decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
   input_data_path = args['input_data_path']
   target_data_path = args['target_data_path']
   input_forest_path = args['input_forest_path']
@@ -213,7 +215,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     target_sent = preprocessing_without_start(target_sentences[:130000])
     lst = load_simple_token_list_from_file(input_forest_path)
     
-    batch_size = 16
+    batch_size = 1
     max_length = 870
     loss = trainIters(encoder, decoder,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     eval_input,eval_target,eval_lst = get_eval_data(args)
