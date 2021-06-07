@@ -294,13 +294,13 @@ class NewDecoder(nn.Module):
     tree_output = tree_output.transpose(0,1)
     seq_output = seq_output.transpose(0,1)
     lhidden = last_hidden[0]
-    print("last_hidden ",lhidden.shape)
-    print("tanh_hidden ",tanh_hidden.shape)
+    # print("last_hidden ",lhidden.shape)
+    # print("tanh_hidden ",tanh_hidden.shape)
     batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
     if self.is_begin_token(word_indices):
       current_ht = lhidden
-      print(" go into if current_ht ",current_ht.shape)
+      # print(" go into if current_ht ",current_ht.shape)
     else:
       word_embedded = self.embedding(word_indices)
       current_ht = lhidden + tanh_hidden

@@ -71,9 +71,10 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     for i in range(batch_size):
       word_input.append(en_model.vocab['<start>'].index)
     decoder_input = torch.tensor(word_input, device=device)
-    print("decoder_input ",decoder_input)
+    
     last_seq_hidden = encoder_seq_output[:,maxNode].unsqueeze(0)
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
+    print("decoder_hidden ",decoder_hidden.shape)
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
     if isTrain == False:
       use_teacher_forcing = False
