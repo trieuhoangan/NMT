@@ -42,8 +42,8 @@ def timeSince(since, percent):
 def check_end(lst,batch):
   print("lst ",lst)
   sum = 0 
-  for i in range(batch):
-    sum += int(lst[i])
+  for num in lst:
+    sum += int(num)
   if sum == batch:
     return True
   else:
