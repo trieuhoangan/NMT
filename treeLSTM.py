@@ -128,7 +128,7 @@ class BinaryTreeLSTMCell(nn.Module):
         adj_list = self.calculate_near_end_node(adj_list)
         
         for i in range(numNode-1, -1, -1):
-            if adj_list[i][0] != "" or adj_list[i][0] == "@@":
+            if adj_list[i][0] != "":
                 continue
                 try:
                     adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
@@ -140,11 +140,14 @@ class BinaryTreeLSTMCell(nn.Module):
                 right_id = adj_list[i][1][1]
                 h_left = adj_list[left_id][2]
                 c_left = adj_list[left_id][3]
-                h_right = adj_list[right_id][2]
-                c_right = adj_list[right_id][3]
-                h,c = self.calculate(h_left,h_right,c_left,c_right)
-                adj_list[i].append(h)
-                adj_list[i].append(c)
+                try:
+                    h_right = adj_list[right_id][2]
+                    c_right = adj_list[right_id][3]
+                    h,c = self.calculate(h_left,h_right,c_left,c_right)
+                    adj_list[i].append(h)
+                    adj_list[i].append(c)
+                except:
+                    print(adj_list[right_id])
         outputs = None
         for i in range(numNode-1, 0, -1):
             if adj_list[i][0] == "":
