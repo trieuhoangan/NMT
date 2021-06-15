@@ -209,7 +209,7 @@ class BinaryTreeLSTMCell(nn.Module):
             left_c = self.get_batch_vector(adj_list,left_set,3)
             right_h = self.get_batch_vector(adj_list,right_set,2)
             right_c = self.get_batch_vector(adj_list,right_set,3)
-            h,c = self.calculate(h_left,h_right,c_left,c_right)
+            h,c = self.calculate(left_h,right_h,left_c,right_c)
             print("batch LSTM h shape",h.shape)
             print("batch LSTM c shape",c.shape)
             for i in range(0,num_node):
