@@ -10,7 +10,7 @@ from PhoNode import Tree_, PhoNode
 import copy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import gensim
-
+from preprocess import get_k_elements
 class BinaryTreeLSTMCell(nn.Module):
     '''
       TreeLSTMCell is defined based on the format of LSTM function of torch.nn
@@ -125,8 +125,10 @@ class BinaryTreeLSTMCell(nn.Module):
                 numLeaf += 1
         numNode = len(adj_list)
         adj_list = self.calculate_leaf_nodes(adj_list)
+        adj_list = self.calculate_near_end_node(adj_list)
+        
         for i in range(numNode-1, -1, -1):
-            if adj_list[i][0] != "":
+            if adj_list[i][0] != "" or adj_list[i][0] == "@@":
                 continue
                 try:
                     adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
@@ -169,3 +171,57 @@ class BinaryTreeLSTMCell(nn.Module):
             adj_list[index].append(embedded_vec)
             adj_list[index].append(torch.zeros(1,self.hidden_size).to(device))
         return adj_list
+    def calculate_near_end_node(self,adj_list):
+        leaf_indices = []
+        end_node_indices = []
+        left_indices = []
+        right_indices = []
+        num_node = len(adj_list)
+        for i in  range(0,num_node):
+            if adj_list[i][0] !="":
+                leaf_indices.append(i)
+        for i in  range(0,num_node):
+            isEndNode = 0
+            if adj_list[i][0] =="":
+                for j in adj_list[i][1]:
+                    if j in leaf_indices:
+                        isEndNode +=1
+                if isEndNode == 2:
+                    end_node_indices.append(i)
+                    left_indices.append(adj_list[i][1][0])
+                    right_indices.append(adj_list[i][1][1])
+                    adj_list[i][0] = "@@"
+        batch = 16
+        num_end_node = len(end_node_indices)
+        avai_node =  num_end_node
+        start_index = 0
+        while start_index < num_end_node:
+            num_node = 0
+            avai_node = num_end_node - start_index
+            if avai_node > batch:
+                num_node = batch
+            else:
+                num_node = avai_node
+            node_set = get_k_elements(end_node_indices,num_node,start_index)
+            left_set = get_k_elements(left_indices,num_node,start_index)
+            right_set = get_k_elements(right_indices,num_node,start_index)
+            left_h = self.get_batch_vector(adj_list,left_set,2)
+            left_c = self.get_batch_vector(adj_list,left_set,3)
+            right_h = self.get_batch_vector(adj_list,right_set,2)
+            right_c = self.get_batch_vector(adj_list,right_set,3)
+            h,c = self.calculate(h_left,h_right,c_left,c_right)
+            print("batch LSTM h shape",h.shape)
+            print("batch LSTM c shape",c.shape)
+            for i in range(0,num_node):
+                index = start_index +i
+                adj_list[index].append(h[i].unsqueeze(0))
+                adj_list[index].append(c[i].unsqueeze(0))
+            start_index = start_index + num_node
+
+        return adj_list
+    def get_batch_vector(self,adj_list,indice_set,pos):
+        result = adj_list[indice_set[0]][pos] # get the vector at pos in the first indice set node
+        for i in range(1,len(indice_set)):
+            index = indice_set[i]
+            result = torch.cat((result,adj_list[index][pos]),dim=0).to(device)
+        return result
