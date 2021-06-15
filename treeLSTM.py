@@ -163,7 +163,7 @@ class BinaryTreeLSTMCell(nn.Module):
             if adj_list[i][0] !="":
                 leaf_indices.append(i)
                 leaf_content.append(adj_list[i][0])
-        embedded = self.embedding(torch.Tensor(leaf_content)).to(torch.int64).to(device)
+        embedded = self.embedding(torch.Tensor(leaf_content).to(torch.int64).to(device))
         num_word, hidden_size = embedded.shape
         for i in range(0,num_word):
             index = leaf_indices[i]
