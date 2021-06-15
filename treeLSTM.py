@@ -124,8 +124,10 @@ class BinaryTreeLSTMCell(nn.Module):
             if node[0]=="":
                 numLeaf += 1
         numNode = len(adj_list)
+        adj_list = self.calculate_leaf_nodes(adj_list)
         for i in range(numNode-1, -1, -1):
             if adj_list[i][0] != "":
+                continue
                 try:
                     adj_list[i].append(self.embedding(torch.Tensor([adj_list[i][0]]).to(torch.int64).to(device)))
                     adj_list[i].append(torch.zeros(1,self.hidden_size).to(device))
@@ -151,3 +153,19 @@ class BinaryTreeLSTMCell(nn.Module):
         h = adj_list[0][2].to(device)
         c = adj_list[0][3].to(device)
         return numLeaf,outputs,(h,c)
+    def calculate_leaf_nodes(self,adj_list):
+        leaf_indices = []
+        leaf_content = []
+        num_node = len(adj_list)
+        for i in  range(0,num_node):
+            if adj_list[i][0] !="":
+                leaf_indices.append(i)
+                leaf_content.append(adj_list[i][0])
+        embedded = self.embedding(torch.Tensor(leaf_content)).to(torch.int64).to(device)
+        num_word, hidden_size = embedded.shape
+        for i in range(0,num_word):
+            index = leaf_indices[i]
+            embedded_vec = embedded[i].unsqueeze(0)
+            adj_list[index].append(embedded_vec)
+            adj_list[index].append(torch.zeros(1,self.hidden_size).to(device))
+        return adj_list
