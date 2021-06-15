@@ -129,7 +129,21 @@ class Tree():
                     listNode[j] = copy.deepcopy(listNode[i])
                     listNode[i] = copy.deepcopy(tmpNode)
         return listNode
-
+    def get_levels_list(self,node):
+        level_list = []
+        current_level = []
+        next_level = []
+        current_level.append(node)
+        level_list.append(current_level)
+        next_level.extend(node.childList)
+        while len(next_level)!=0:
+            current_level = next_level
+            level_list.append(current_level)
+            next_level = []
+            for childnode in current_level:
+                next_level.extend(childnode.childList)
+        return level_list
+    
     def up_node(self, node):
         new_node = Node()
         if node.text != "":
@@ -255,7 +269,23 @@ def create_node_list(token_list):
                 nodes.append(node)
         nodeListes.append(nodes)
     return nodeListes
-
+def gen_level_list_from_adj_list(adj_list):
+    level_list = []
+    current_level = [0]
+    next_level = []
+    if len(adj_list[current_level[0]][1])!=0:
+        for i in adj_list[current_level[0]][1]:
+            next_level.append(i)
+    level_list.append(current_level)
+    while len(next_level)!=0:
+        current_level = next_level
+        level_list.append(current_level)
+        next_level = []
+        for node_index in current_level:
+            if len(adj_list[node_index][1]) != 0:
+                for index in adj_list[node_index][1]:
+                    next_level.append(index)
+    return level_list
 def get_indices_list(adjency_list,language_model):
     for node in adjency_list:
         if node[0]!="":
@@ -287,7 +317,7 @@ if __name__ == "__main__":
 
     start = time.time()
     
-    tokenList = load_simple_token_list_from_file("../tree_train.txt")
+    tokenList = load_simple_token_list_from_file("../test_site.txt")
     nodeList = create_node_list(tokenList)
     for nodes in nodeList:
         tree = Tree(nodes)
@@ -296,6 +326,8 @@ if __name__ == "__main__":
         # root.print_all()
         # print(root.count_node())
         adjency_list = tree.generate_adjency_list(root)
-        # print(adjency_list)
+        # adjency_list = get_indices_list(adjency_list,language_model)
+        level_list = gen_level_list_from_adj_list(adjency_list)
+        print(level_list)
     end = time.time()
     print(end - start)

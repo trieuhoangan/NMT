@@ -219,28 +219,26 @@ class NewAttn(nn.Module):
       if num > maxNumNode:
         maxNumNode = num
     numLeaf = maxNumNode + 1
-    try:
-      tree_output = tree_output.transpose(0,1).to(device)
-      seq_ouput = seq_ouput.transpose(0,1).to(device)
-      tree_states = tree_output[:maxNumNode]
-      seq_states = seq_ouput[:numLeaf]
-      '''
-        at this time 
-          tree_states has size (N,B,H)
-          seq_states has size (N +1,B,H)
-      '''
-      states = torch.cat((tree_states,seq_states),dim=0)
-      weight = self.batch_calculate(states,cur_state)
-      weight = weight.unsqueeze(1).to(device)
-      states = states.transpose(0,1).to(device)
-      d = torch.bmm(weight,states)
-      d = d.transpose(0,1)
-      d = d[0].to(device)
-      return d
-    except:
-      print("cur_state",cur_state.shape)
+    tree_output = tree_output.transpose(0,1).to(device)
+    seq_ouput = seq_ouput.transpose(0,1).to(device)
+    tree_states = tree_output[:maxNumNode]
+    seq_states = seq_ouput[:numLeaf]
+    '''
+      at this time 
+        tree_states has size (N,B,H)
+        seq_states has size (N +1,B,H)
+    '''
+    states = torch.cat((tree_states,seq_states),dim=0)
+    weight = self.batch_calculate(states,cur_state)
+    weight = weight.unsqueeze(1).to(device)
+    states = states.transpose(0,1).to(device)
+    d = torch.bmm(weight,states)
+    d = d.transpose(0,1)
+    d = d[0].to(device)
+    return d
   def batch_calculate(self,allstates,cur_state):
     states = allstates.transpose(0,1).to(device)
+    
     cur_stt = cur_state.unsqueeze(2).to(device)
     weight = torch.bmm(states,cur_stt)
     '''
@@ -294,24 +292,23 @@ class NewDecoder(nn.Module):
     
     tree_output = tree_output.transpose(0,1)
     seq_output = seq_output.transpose(0,1)
-    lhidden = last_hidden[0]
+    lhidden = last_hidden
+    # print("last_hidden ",lhidden.shape)
+    # print("tanh_hidden ",tanh_hidden.shape)
     batch = word_indices.shape[0]
     current_ht = torch.zeros(batch,self.hidden_size)
     if self.is_begin_token(word_indices):
       current_ht = lhidden
     else:
-
       word_embedded = self.embedding(word_indices)
       current_ht = lhidden + tanh_hidden
       current_ht,c = self.LSTM(word_embedded,(current_ht.to(device),c))
-
     context = self.attn(tree_output,seq_output,current_ht,numNode)
     context_vector = torch.cat((current_ht,context),dim=1)
     current_tanh_hidden = torch.tanh(self.combine_context(context_vector))
     out_vec = self.out(current_tanh_hidden)
     prob = F.softmax(out_vec,dim=0)
     return prob,current_ht,current_tanh_hidden,context,c
-    
   def is_begin_token(self,word_indices):
     sum = 0
     for index in word_indices:
@@ -339,8 +336,9 @@ class NewDecoder(nn.Module):
         first_hiddens = hidden_one
       else:
         first_hiddens = torch.cat((first_hiddens,hidden_one),dim=0)
-    first_hiddens = first_hiddens.unsqueeze(0)
+    # first_hiddens = first_hiddens.unsqueeze(0)
     return first_hiddens
+
   def init_new_hidden(self):
     return torch.zeros((1,self.hidden_size)).to(device)
 

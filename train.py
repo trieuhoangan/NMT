@@ -41,8 +41,8 @@ def timeSince(since, percent):
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 def check_end(lst,batch):
   sum = 0 
-  for i in range(batch):
-    sum += int(lst[i])
+  for num in lst:
+    sum += int(num)
   if sum == batch:
     return True
   else:
@@ -54,7 +54,6 @@ def check_end(lst,batch):
 '''
 def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length,batch_size,isTrain):
     # encoder_hidden = encoder.initHidden()
-
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
 
@@ -72,14 +71,17 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
     for i in range(batch_size):
       word_input.append(en_model.vocab['<start>'].index)
     decoder_input = torch.tensor(word_input, device=device)
+    
     last_seq_hidden = encoder_seq_output[:,maxNode].unsqueeze(0)
     decoder_hidden = decoder.get_first_hidden(encoder_tree_hc[0],last_seq_hidden,encoder_tree_hc[1],encoder_seq_hc[1])
-    use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+    use_teacher_forcing = True
     if isTrain == False:
       use_teacher_forcing = False
-    # use_teacher_forcing = True
-
+    else:
+      # use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+      use_teacher_forcing = True
     c = torch.zeros(batch_size,decoder.hidden_size).to(device)
+
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
         # for bi in range(batch_size)
@@ -93,7 +95,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               target_length = di
               break
             decoder_input = target_tensor[:,di]  # Teacher forcing
-            
+            # print("decoder_input ",decoder_input)
     else:
         # Without teacher forcing: use its own predictions as the next input
         for di in range(target_length):
@@ -104,10 +106,13 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
               mean first word of each sentence.
             '''
             tanh_hidden = decoder_tanh_hidden
+            
             loss += criterion(decoder_output, target_tensor[:,di])
+            # print("no force teaching used ",target_tensor[:,di])
+            
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
-      
+            # print("decoder_input ",decoder_input)
             if check_end(decoder_input,batch_size):
               target_length = di
               break
@@ -128,6 +133,8 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
   target_sentence is all sentence that is translated from the other side
 '''
 def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,batch_size,input_model,target_model, MAX_LENGTH,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,print_every=400, plot_every=400,isTrain = True):
+    print_every = (print_every * 16) / batch_size
+    plot_every = (plot_every * 16) / batch_size
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -143,6 +150,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     totalLoss = 0
     for iter in range(last_iter+1, n_iters + 1):
         # print(iter)
+        
         input_batch = get_k_elements(source_list=input_sentence,batch_size=batch_size,start_point=checkpoint)
         forest_batch = get_k_elements(source_list=input_tokenlist,batch_size=batch_size,start_point=checkpoint)
         target_batch = get_k_elements(source_list=target_sentence,batch_size=batch_size,start_point=checkpoint)
@@ -161,6 +169,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             print_loss_total = 0
             print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
                                          iter, iter / n_iters * 100, print_loss_avg))
+            # print("encoder",encoder.parameters())
+            # print("decoder",decoder.parameters())
 
         if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / (plot_every*batch_size)
@@ -215,7 +225,7 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     max_length = 870
     loss = trainIters(encoder, decoder,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     eval_input,eval_target,eval_lst = get_eval_data(args)
-    eval_loss = trainIters(encoder,decoder,eval_input,eval_lst,eval_target,batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer,isTrain=False)
+    eval_loss = trainIters(encoder,decoder,eval_input,eval_lst,eval_target,batch_size,vi_model,en_model,max_length,save_path,0,0,encoder_optimizer,decoder_optimizer,isTrain=False)
     print('finish epoch {} - loss {}'.format(epoch+1,eval_loss))
     # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
     torch.save({
