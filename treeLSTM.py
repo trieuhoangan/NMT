@@ -193,7 +193,7 @@ class BinaryTreeLSTMCell(nn.Module):
                     end_node_indices.append(i)
                     left_indices.append(adj_list[i][1][0])
                     right_indices.append(adj_list[i][1][1])
-                    adj_list[i][0] = "@@"
+                    # adj_list[i][0] = "@@"
         batch = 16
         num_end_node = len(end_node_indices)
         avai_node =  num_end_node
@@ -219,6 +219,7 @@ class BinaryTreeLSTMCell(nn.Module):
                 index = start_index +i
                 adj_list[index].append(h[i].unsqueeze(0))
                 adj_list[index].append(c[i].unsqueeze(0))
+                adj_list[index][0] = "@@"
             start_index = start_index + num_node
 
         return adj_list
