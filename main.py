@@ -55,4 +55,4 @@ if __name__=='__main__':
             "target_valid_path":target_valid_path,
             "valid_forest_path":valid_forest_path
             }
-    normal_train(enc,dec,args)
+    train_from_checkpoint(enc,dec,args)
