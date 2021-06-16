@@ -88,7 +88,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
         for di in range(target_length):
             decoder_output, decoder_hidden,decoder_tanh_hidden, decoder_attention,c = decoder(
                 decoder_input, decoder_hidden,tanh_hidden ,encoder_seq_output.transpose(0,1),encoder_tree_output.transpose(0,1),numNode,c)
-          
+            
             loss += criterion(decoder_output, target_tensor[:,di])
             tanh_hidden = decoder_tanh_hidden
             if check_end(decoder_input,batch_size):
@@ -141,8 +141,8 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     plot_loss_total = 0  # Reset every plot_every
 
     # criterion = nn.CrossEntropyLoss()
-    # criterion = nn.NLLLoss()
-    criterion = nn.MSELoss()
+    criterion = nn.NLLLoss()
+    # criterion = nn.MSELoss()
 
     total_exp = len(input_sentence)
     n_iters = int(total_exp/batch_size)
