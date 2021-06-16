@@ -122,7 +122,10 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
       loss.backward()
       encoder_optimizer.step()
       decoder_optimizer.step()
-
+    if torch.isnan(loss):
+      print("input of nan ",input_tensor)
+      print("target of nan ",target_tensor)
+      print("tree of nan ",input_forest)
     return loss.item()
 
 
