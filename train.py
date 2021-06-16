@@ -207,7 +207,8 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     epoch_path = '{}/checkpoint.pt'.format(save_path)
     # if os.path.exists(epoch_dir)== False:
     #   os.mkdir(epoch_dir)
-    
+    encoder.train()
+    decoder.train()
     raw_input_text = open(input_data_path, 'rb').read().decode(encoding='utf-8')
     raw_target_text = open(target_data_path, 'rb').read().decode(encoding='utf-8')
 
@@ -225,6 +226,8 @@ def trainEpoch(encoder,decoder,args,last_epoch,last_iter,save_path,learning_rate
     max_length = 870
     loss = trainIters(encoder, decoder,input_sent,lst[:130000],target_sent, batch_size,vi_model,en_model,max_length,save_path,epoch,last_iter,encoder_optimizer,decoder_optimizer)
     eval_input,eval_target,eval_lst = get_eval_data(args)
+    encoder.eval()
+    decoder.eval()
     eval_loss = trainIters(encoder,decoder,eval_input,eval_lst,eval_target,batch_size,vi_model,en_model,max_length,save_path,0,0,encoder_optimizer,decoder_optimizer,isTrain=False)
     print('finish epoch {} - loss {}'.format(epoch+1,eval_loss))
     # spath = '{}/epoch_{}.pt'.format(epoch_dir,epoch)
