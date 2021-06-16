@@ -140,9 +140,9 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
     print_loss_total = 0  # Reset every print_every
     plot_loss_total = 0  # Reset every plot_every
 
-    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.CrossEntropyLoss()
     # criterion = nn.NLLLoss()
-    # criterion = nn.MSELoss()
+    criterion = nn.MSELoss()
 
     total_exp = len(input_sentence)
     n_iters = int(total_exp/batch_size)
