@@ -123,6 +123,7 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
         print("input of nan ",input_tensor)
         print("target of nan ",target_tensor)
         print("tree of nan ",input_forest)
+        return None
         return 0
       else:
         loss.backward()
