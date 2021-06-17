@@ -119,13 +119,16 @@ def train(input_tensor, target_tensor, input_forest ,encoder, decoder, encoder_o
             # if decoder_input.item() == EOS_token:
             #     break
     if isTrain:
-      loss.backward()
-      encoder_optimizer.step()
-      decoder_optimizer.step()
-    if torch.isnan(loss):
-      print("input of nan ",input_tensor)
-      print("target of nan ",target_tensor)
-      print("tree of nan ",input_forest)
+      if torch.isnan(loss):
+        print("input of nan ",input_tensor)
+        print("target of nan ",target_tensor)
+        print("tree of nan ",input_forest)
+        return 0
+      else:
+        loss.backward()
+        encoder_optimizer.step()
+        decoder_optimizer.step()
+    
     return loss.item()
 
 
@@ -179,7 +182,7 @@ def trainIters(encoder, decoder, input_sentence,input_tokenlist,target_sentence,
             plot_loss_avg = plot_loss_total / (plot_every*batch_size)
             plot_losses.append(plot_loss_avg)
             plot_loss_total = 0
-        if iter>0 and iter % 800 == 0:
+        if iter>0 and iter % 800 == 0 and loss !=0:
           enc_path = '{}/checkpoint.pt'.format(save_path)
           torch.save({
             'epoch':epoch,
